@@ -1,39 +1,75 @@
-import { useState } from 'react'
 import { Header, EmptyState } from './components/Layout'
 import { MessageList, InputArea, TypingIndicator } from './components/Chat'
 import { useConversation } from './contexts'
-
-// Mock responses for testing
-const mockResponses = [
-  "Great! Let's work through this together. What are we trying to find in this problem?",
-  "Exactly! Now, what information do we have that might help us?",
-  "Good thinking! What operation could we use to isolate the variable?",
-  "Perfect! Can you try that step and tell me what you get?",
-]
+import { sendMessage } from './services/openaiService'
+import {
+  buildConversationContext,
+  detectStuckResponse,
+  detectCelebration,
+} from './utils/promptBuilder'
 
 function App() {
-  const { conversation, addMessage, clearConversation, setStatus } = useConversation()
-  const [mockResponseIndex, setMockResponseIndex] = useState(0)
+  const {
+    conversation,
+    addMessage,
+    clearConversation,
+    setStatus,
+    incrementStuckCount,
+    resetStuckCount,
+  } = useConversation()
 
   const handleNewProblem = () => {
     clearConversation()
-    setMockResponseIndex(0)
   }
 
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = async (content: string) => {
     // Add user message
     addMessage(content, 'user')
-    
+
+    // Check if user seems stuck
+    if (detectStuckResponse(content)) {
+      incrementStuckCount()
+    } else if (conversation.messages.length > 0) {
+      // Reset stuck count if they seem to be making progress
+      resetStuckCount()
+    }
+
     // Show typing indicator
     setStatus('thinking')
 
-    // Simulate AI response after a delay
-    setTimeout(() => {
-      const response = mockResponses[mockResponseIndex % mockResponses.length]
-      addMessage(response, 'assistant')
+    try {
+      // Build conversation context with current stuck count
+      const messages = buildConversationContext(
+        [...conversation.messages, {
+          id: 'temp',
+          sender: 'user',
+          content,
+          timestamp: new Date(),
+        }],
+        conversation.stuckCount
+      )
+
+      // Get response from OpenAI
+      const response = await sendMessage({ messages })
+
+      // Check if this is a celebration moment
+      const isCelebration = detectCelebration(response)
+
+      // Add AI response
+      addMessage(response, 'assistant', isCelebration ? 'celebration' : undefined)
+
       setStatus('idle')
-      setMockResponseIndex(prev => prev + 1)
-    }, 1500)
+    } catch (error: any) {
+      console.error('Error getting response:', error)
+      
+      // Add error message
+      addMessage(
+        `I'm having trouble connecting right now. ${error.message || 'Please try again in a moment.'}`,
+        'assistant'
+      )
+      
+      setStatus('idle')
+    }
   }
 
   const hasMessages = conversation.messages.length > 0
@@ -42,7 +78,7 @@ function App() {
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <Header onNewProblem={hasMessages ? handleNewProblem : undefined} />
-      
+
       <main className="flex-1 overflow-y-auto">
         {!hasMessages ? (
           <EmptyState />
@@ -58,8 +94,8 @@ function App() {
         )}
       </main>
 
-      <InputArea 
-        onSend={handleSendMessage} 
+      <InputArea
+        onSend={handleSendMessage}
         disabled={isThinking}
         placeholder="Type your math problem or answer..."
       />
