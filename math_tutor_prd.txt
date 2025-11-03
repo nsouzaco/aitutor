@@ -1,0 +1,806 @@
+# Product Requirements Document: AI Math Tutor - Socratic Learning Assistant
+
+## Executive Summary
+
+**Product Name:** AI Math Tutor - Socratic Learning Assistant  
+**Version:** 1.0  
+**Date:** November 3, 2025  
+**Timeline:** 3-5 days (core features) + 2-3 days (optional stretch features)
+
+### Vision
+Create an AI-powered math tutor that empowers students to discover solutions independently through Socratic questioning, similar to the OpenAI x Khan Academy demo. The system will never provide direct answers, instead guiding students through reasoning and problem-solving processes.
+
+### Success Metrics
+- Successfully guides students through 5+ distinct math problem types
+- Maintains conversation context across multi-turn dialogues
+- Adapts questioning complexity to student understanding level
+- Students reach correct solutions with minimal direct hints
+- 90%+ of users successfully complete at least one problem
+- Average session duration >5 minutes (indicates engagement)
+- Positive user feedback on learning experience
+
+---
+
+## Problem Statement
+
+Students often struggle with math homework and seek quick answers rather than understanding. Traditional tutoring is expensive and not always available. Existing AI math tools frequently provide direct solutions, undermining the learning process. 
+
+**Our Solution:** An AI tutor that uses the Socratic method to develop critical thinking skills, helping students learn how to solve problems rather than just obtaining answers.
+
+---
+
+## Technical Stack
+
+### Frontend
+- **Framework:** React 18 with TypeScript
+- **Build Tool:** Vite (fast dev server, optimized builds)
+- **Styling:** Tailwind CSS (utility-first, rapid development)
+- **Math Rendering:** KaTeX (lightweight, fast LaTeX rendering)
+- **State Management:** React Context API + hooks
+- **Image Upload:** react-dropzone
+
+### Backend/Services
+- **Database:** Firebase Firestore (NoSQL, real-time)
+- **Hosting:** Firebase Hosting (CDN, SSL, custom domains)
+- **Authentication:** Firebase Auth (Phase 2 - user accounts)
+- **LLM Provider:** Claude API (Anthropic) - Sonnet 4.5
+- **Image Processing:** Claude Vision API
+
+### Development Tools
+- **Version Control:** Git + GitHub
+- **Package Manager:** npm
+- **Linting:** ESLint + Prettier
+- **CI/CD:** GitHub Actions + Firebase
+
+### Key Dependencies
+```json
+{
+  "dependencies": {
+    "react": "^18.2.0",
+    "firebase": "^10.7.0",
+    "katex": "^0.16.9",
+    "react-katex": "^3.0.1",
+    "lucide-react": "^0.263.1",
+    "react-dropzone": "^14.2.3",
+    "@anthropic-ai/sdk": "^0.9.0"
+  }
+}
+```
+
+---
+
+## Project Architecture
+
+### High-Level Structure
+```
+math-tutor/
+├── src/
+│   ├── components/          # React components
+│   │   ├── Chat/           # Chat interface components
+│   │   ├── ImageUpload/    # Image upload UI
+│   │   ├── MathRenderer/   # KaTeX math display
+│   │   └── Layout/         # Header, footer, etc.
+│   ├── contexts/           # React Context for state
+│   ├── hooks/              # Custom React hooks
+│   ├── services/           # API integrations
+│   │   ├── claudeAPI.ts    # Claude API wrapper
+│   │   ├── firebaseConfig.ts
+│   │   └── imageParser.ts
+│   ├── utils/              # Helper functions
+│   └── types/              # TypeScript types
+├── public/
+├── .env.local              # Environment variables
+└── firebase.json
+```
+
+### Data Flow
+```
+User Input (Text/Image) 
+    ↓
+Image Parser (Claude Vision) → Extract Problem Text
+    ↓
+Conversation Context (React State)
+    ↓
+Claude API (Socratic Prompts)
+    ↓
+Math Renderer (KaTeX) → Display Response
+    ↓
+Firestore (Save Conversation)
+```
+
+### Firebase Schema
+```javascript
+// Firestore Structure
+conversations/
+  {conversationId}/
+    - id: string
+    - createdAt: Timestamp
+    - problemText: string
+    - problemImageUrl?: string
+    - messages: Array<Message>
+    - status: 'active' | 'completed'
+```
+
+---
+
+## Design Philosophy & UI Guidelines
+
+### Core Design Principles
+
+**1. Minimal & Clean**
+- Remove all unnecessary visual elements
+- Focus attention on the conversation
+- Generous whitespace to reduce cognitive load
+- No clutter, no distractions
+
+**2. Inviting & Approachable**
+- Warm, friendly color palette (avoid stark/clinical)
+- Soft shadows and rounded corners
+- Welcoming empty states
+- Encouraging micro-interactions
+
+**3. Focus on Learning**
+- Math equations are the star - render beautifully
+- Clear visual hierarchy: student vs. tutor messages
+- Progress indicators that celebrate learning
+- Never intimidating or overwhelming
+
+---
+
+## UI Specifications
+
+### Color Palette
+
+```css
+/* Primary Colors - Warm, inviting, education-focused */
+--primary: #6366f1           /* Soft indigo - trust, intelligence */
+--primary-light: #818cf8
+--primary-dark: #4f46e5
+
+/* Neutral Base */
+--background: #ffffff
+--surface: #f9fafb           /* Very light gray */
+--text-primary: #111827      /* Near black */
+--text-secondary: #6b7280    /* Medium gray */
+
+/* Semantic Colors */
+--success: #10b981           /* Soft green - encouragement */
+--warning: #f59e0b           /* Amber - hints */
+--error: #ef4444             /* Red - errors only */
+
+/* Message Backgrounds */
+--tutor-message-bg: #f0f4ff  /* Very light indigo */
+--student-message-bg: #ffffff /* White with border */
+```
+
+**Usage Guidelines:**
+- Use primary color sparingly - CTAs and important elements only
+- Default to neutral grays for most UI
+- Tutor messages: soft colored background
+- Student messages: white with subtle border
+- Never use pure black (#000000)
+
+---
+
+### Typography
+
+**Font Family:**
+```css
+font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+```
+
+**Type Scale:**
+```css
+--text-4xl: 2.25rem (36px) - font-weight: 700  /* App title */
+--text-2xl: 1.5rem (24px) - font-weight: 600   /* Section titles */
+--text-xl: 1.25rem (20px) - font-weight: 600   /* Headings */
+--text-lg: 1.125rem (18px) - font-weight: 400  /* Tutor messages */
+--text-base: 1rem (16px) - font-weight: 400    /* Student messages */
+--text-sm: 0.875rem (14px) - font-weight: 400  /* Timestamps */
+--text-xs: 0.75rem (12px) - font-weight: 500   /* Labels */
+```
+
+**Guidelines:**
+- Tutor messages: slightly larger (text-lg) for emphasis
+- Student messages: base size (text-base)
+- Line height: 1.6 for readability
+- Never use all-caps for body text
+
+---
+
+### Spacing & Layout
+
+**Container:**
+```css
+max-width: 768px      /* Optimal reading width */
+margin: 0 auto        /* Centered */
+padding: 1.5rem       /* Mobile: 24px */
+
+@media (min-width: 768px) {
+  padding: 2rem       /* Desktop: 32px */
+}
+```
+
+**Message Spacing:**
+- Between messages: 1.5rem (24px)
+- Message padding: 1rem (16px)
+- Message max-width: 85% (don't stretch full width)
+
+**Whitespace Philosophy:**
+- More space = less stress
+- Empty state should feel calm, not lonely
+- Don't fear blank space - it helps focus
+
+---
+
+### Key UI Components
+
+#### 1. Header (Minimal)
+- Subtle, non-intrusive design
+- App icon/logo (simple, small)
+- "New Problem" button (top-right)
+- Height: 64px
+- Background: white with subtle bottom border
+
+#### 2. Empty State (Inviting)
+- Centered vertically and horizontally
+- Large, friendly icon (book, pencil, lightbulb)
+- Warm, encouraging headline: "Let's solve a problem together!"
+- Clear instructions in lighter text
+- Prominent upload button
+
+#### 3. Message Layout
+
+**Tutor Message (Left-aligned):**
+- Avatar icon (bot symbol)
+- Soft colored background (#f0f4ff)
+- Rounded corners (rounded-2xl)
+- Math equations rendered with KaTeX
+- Timestamp below message
+
+**Student Message (Right-aligned):**
+- User avatar icon
+- White background with border
+- Rounded corners (rounded-2xl)
+- Timestamp below message
+
+#### 4. Input Area
+- Sticky to bottom
+- Upload button (left) - icon only
+- Auto-expanding textarea
+- Send button (right) - disabled until text entered
+- Subtle shadow to separate from messages
+
+#### 5. Image Upload
+- Drag & drop zone with dashed border
+- "Drag image here or click to browse"
+- Supports: JPG, PNG, WebP (max 10MB)
+- Preview thumbnail after upload
+- Processing indicator while analyzing
+
+#### 6. Loading States
+**Typing Indicator:**
+- Animated three dots in tutor message bubble
+- Soft indigo color matching theme
+
+**Image Processing:**
+- Spinner icon with "Processing your image..." text
+- Light indigo background
+
+#### 7. Math Rendering
+- Block equations: centered with light background
+- Inline equations: flow with text
+- Proper spacing around equations
+- Mobile-responsive
+
+#### 8. Success Celebration
+- Gradient background (green to indigo)
+- Celebration emoji (🎉)
+- Encouraging message
+- "Try Another Problem" button
+
+#### 9. Hint Indicator
+- Amber/yellow background
+- Lightbulb icon
+- "Hint:" label
+- Subtle left border accent
+
+---
+
+### Interaction Guidelines
+
+**Micro-interactions:**
+- Button hover: subtle lift effect (2px)
+- Input focus: smooth ring appearance
+- Message appearance: fade + slide animation
+- All transitions: 200-300ms duration
+
+**Animations:**
+```css
+/* Keep animations under 300ms */
+transition: all 0.2s ease;
+
+/* Message appearance */
+@keyframes messageAppear {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+```
+
+---
+
+### Responsive Design
+
+**Breakpoints:**
+```css
+sm: 640px   /* Small tablets */
+md: 768px   /* Tablets */
+lg: 1024px  /* Desktop */
+```
+
+**Mobile Adjustments:**
+- Reduce padding: 1rem instead of 2rem
+- Smaller text sizes
+- Full-width messages (max-width: 95%)
+- Sticky header with smaller logo
+- Touch targets: minimum 44x44px
+
+---
+
+### Accessibility Requirements
+
+**WCAG AA Compliance:**
+- Color contrast ratio: 4.5:1 for text
+- Keyboard navigation support
+- Focus indicators on all interactive elements
+- Proper ARIA labels
+- Alt text for images and icons
+- Screen reader support
+
+---
+
+## Core Features (MVP - Days 1-5)
+
+### 1. Problem Input System
+**Priority:** P0 (Critical)  
+**Timeline:** Day 1
+
+**Requirements:**
+- Text input with auto-expanding textarea
+- Image upload via button and drag-and-drop
+- Claude Vision API integration for OCR
+- Support for handwritten and printed notation
+- Client-side image compression (<5MB)
+- Input validation and error handling
+- Image preview before processing
+
+**Acceptance Criteria:**
+- Users can input problems via text or image
+- System extracts text from images (>90% accuracy)
+- Handles various image qualities gracefully
+- Clear error messages for issues
+- Mobile-friendly upload experience
+
+---
+
+### 2. Socratic Dialogue Engine
+**Priority:** P0 (Critical)  
+**Timeline:** Days 2-3
+
+**Requirements:**
+
+**Core Behavior:**
+- Never provide direct answers
+- Guide through structured questioning
+- Validate student responses
+- Provide hints after 2+ stuck turns
+- Use encouraging, patient language
+- Maintain conversation context
+- Adapt to student understanding level
+
+**Question Flow:**
+1. Inventory knowns: "What information do we have?"
+2. Identify goal: "What are we trying to find?"
+3. Guide method: "What approach might work?"
+4. Step through solution
+5. Validate answer
+
+**System Prompt Approach:**
+```
+You are a patient math tutor using the Socratic method.
+
+RULES:
+- NEVER give direct answers
+- Ask guiding questions
+- If stuck >2 turns, provide concrete hint
+- Use encouraging language
+- Celebrate progress
+
+FLOW:
+1. What info do we have?
+2. What are we finding?
+3. What method helps?
+4. Guide each step
+5. Validate answer
+```
+
+**Acceptance Criteria:**
+- Guides through problems without giving answers
+- Provides appropriate hints when stuck
+- Maintains encouraging tone
+- Adapts question difficulty
+- Handles 5+ problem types:
+  - Linear equations
+  - Quadratic equations
+  - Word problems
+  - Geometry
+  - Systems of equations
+
+---
+
+### 3. Math Rendering
+**Priority:** P0 (Critical)  
+**Timeline:** Day 4
+
+**Requirements:**
+- Display equations using KaTeX
+- Support inline and block equations
+- Auto-detect LaTeX notation ($ and $$)
+- Common symbols: fractions, exponents, radicals
+- Mobile-responsive display
+- Graceful fallback for errors
+
+**Acceptance Criteria:**
+- All common math notation renders correctly
+- Professional formatting
+- Works on mobile devices
+- Handles rendering errors gracefully
+
+---
+
+### 4. Web Interface
+**Priority:** P0 (Critical)  
+**Timeline:** Day 4
+
+**Requirements:**
+
+**Layout:**
+- Clean, distraction-free chat interface
+- Clear separation: student vs. tutor messages
+- Persistent conversation history during session
+- Image upload with preview
+- Multi-line text input
+
+**UI Elements:**
+- Start new problem button
+- Clear conversation option
+- Upload button with drag-and-drop
+- Message timestamps
+- Loading indicators
+
+**Responsive Design:**
+- Mobile-first approach
+- Works on tablets and desktop
+- Touch-friendly controls (44x44px minimum)
+- Accessible design (WCAG AA)
+
+**Acceptance Criteria:**
+- Intuitive without instructions
+- Clear on all device sizes
+- Smooth conversation flow
+- Proper loading states
+
+---
+
+## Stretch Features (Days 6-7+)
+
+### High Value Features
+
+#### 5. Interactive Whiteboard
+**Priority:** P1  
+**Effort:** 1-2 days
+
+- Shared canvas for visual explanations
+- Basic shapes and annotations
+- Draw over uploaded images
+- Save/export whiteboard state
+
+#### 6. Step Visualization
+**Priority:** P1  
+**Effort:** 1 day
+
+- Animated solution breakdown
+- Progressive reveal of steps
+- Rewind/forward controls
+- Highlight active step
+
+#### 7. Voice Interface
+**Priority:** P1  
+**Effort:** 1-2 days
+
+- Text-to-speech for responses
+- Speech-to-text for input
+- Voice activity detection
+- Toggle between modes
+
+### Polish Features
+
+#### 8. Animated Avatar
+**Priority:** P2  
+**Effort:** 1 day
+
+- 2D/3D tutor character
+- Emotional expressions
+- Synchronized with responses
+
+#### 9. Difficulty Modes
+**Priority:** P2  
+**Effort:** 0.5 days
+
+- Grade level selector
+- Adjusts vocabulary complexity
+- Modifies scaffolding intensity
+
+#### 10. Problem Generation
+**Priority:** P2  
+**Effort:** 1 day
+
+- Generate similar practice problems
+- Maintain difficulty level
+- Vary contexts and values
+
+---
+
+## Development Timeline
+
+### Day 0: Environment Setup (2-3 hours)
+- Create Vite + React + TypeScript project
+- Initialize Firebase project
+- Configure Firestore
+- Set up environment variables
+- Install Tailwind CSS
+- **Deliverable:** Dev environment ready
+
+### Day 1: Problem Input Foundation
+- Set up React project structure
+- Implement image upload UI
+- Integrate Claude Vision API
+- Set up Firestore schema
+- Test text extraction
+- **Deliverable:** Working image-to-text extraction
+
+### Day 2: LLM Integration
+- Integrate Claude API
+- Implement conversation state management
+- Store conversations in Firestore
+- Test multi-turn conversations
+- **Deliverable:** Basic chat with persistence
+
+### Day 3: Socratic Logic
+- Implement Socratic prompt engineering
+- Add response validation
+- Build hint escalation system
+- Test stuck detection
+- **Deliverable:** Tutor guides without answers
+
+### Day 4: UI Polish & Math Rendering
+- Integrate KaTeX
+- Polish chat interface with Tailwind
+- Add conversation history
+- Test responsive design
+- Add loading states and error handling
+- **Deliverable:** Production-ready interface
+
+### Day 5: Testing & Deployment
+- Test with 5+ problem types
+- Write documentation
+- Record demo video
+- Deploy to Firebase Hosting
+- Configure domain (optional)
+- **Deliverable:** Live app
+
+### Days 6-7 (Optional): Stretch Features
+- Implement 1-2 high-value features
+- Additional testing and refinement
+- **Deliverable:** Enhanced version
+
+---
+
+## Example Interactions
+
+### Interaction 1: Linear Equation
+**Student:** [uploads image: "2x + 5 = 13"]
+
+**Tutor:** "Great! Let's work through this together. What are we trying to find in this equation?"
+
+**Student:** "x"
+
+**Tutor:** "Exactly right! To find x, we need to get it by itself. Right now, what operations are being done to x?"
+
+**Student:** "It's multiplied by 2 and then 5 is added"
+
+**Tutor:** "Perfect observation! To undo these operations, which one should we undo first - the multiplication by 2 or the addition of 5?"
+
+**Student:** "the +5?"
+
+**Tutor:** "Yes! We use the reverse order of operations. So how do we undo adding 5?"
+
+**Student:** "subtract 5?"
+
+**Tutor:** "Exactly! And remember, what we do to one side we must do to both sides. What does our equation look like after subtracting 5 from both sides?"
+
+### Interaction 2: Word Problem
+**Student:** "A rectangle has a perimeter of 24 cm. The length is 3 cm more than the width. What are the dimensions?"
+
+**Tutor:** "Interesting problem! Let's start by identifying what we know. What information does the problem give us?"
+
+**Student:** "perimeter is 24 and length is 3 more than width"
+
+**Tutor:** "Great! Now, what are we trying to find?"
+
+**Student:** "the length and width"
+
+**Tutor:** "Right! Since we have two unknowns, we'll need to express one in terms of the other. If we call the width 'w', how could we express the length?"
+
+---
+
+## Success Criteria & Testing
+
+### Functional Testing
+- [ ] Text input processed correctly
+- [ ] Image upload works for clear images
+- [ ] Tutor asks guiding questions only
+- [ ] Conversation maintains context (5+ turns)
+- [ ] Math notation renders correctly
+- [ ] Mobile responsive design works
+
+### Problem Type Coverage
+- [ ] Linear equations (e.g., 2x + 5 = 13)
+- [ ] Quadratic equations (e.g., x² + 5x + 6 = 0)
+- [ ] Word problems (rate/time/distance)
+- [ ] Geometry (area, perimeter)
+- [ ] Systems of equations
+- [ ] Fraction operations
+
+### User Experience Testing
+- [ ] First-time user can start without instructions
+- [ ] Students feel encouraged, not frustrated
+- [ ] Hint system provides helpful guidance
+- [ ] Loading states provide clear feedback
+- [ ] Error messages are constructive
+
+---
+
+## Cost Estimation
+
+### Firebase Free Tier (Spark Plan)
+```
+✅ Firestore: 50K reads, 20K writes, 1GB storage
+✅ Hosting: 10GB transfer, 1GB storage
+✅ Authentication: Unlimited users
+```
+**MVP should fit in free tier**
+
+### Claude API (Monthly)
+```
+Assuming 100 conversations/day, ~20 messages each:
+- ~2.4M tokens/month
+- Cost: ~$45/month
+
+At scale (1000 conversations/day):
+- Cost: ~$450/month
+```
+
+**Total MVP Cost:** ~$45/month (just LLM API)
+
+---
+
+## Risk Assessment
+
+### Technical Risks
+
+| Risk | Impact | Mitigation |
+|------|---------|------------|
+| OCR accuracy issues | High | Use Claude Vision; allow text re-entry |
+| LLM gives direct answers | High | Careful prompt engineering; testing |
+| Math rendering failures | Medium | Comprehensive testing; fallback display |
+| API rate limiting | Medium | Rate limiting UI; caching |
+| Response latency | Medium | Loading indicators; optimize prompts |
+
+### Product Risks
+
+| Risk | Impact | Mitigation |
+|------|---------|------------|
+| Students frustrated by no answers | High | Clear messaging; celebrate progress |
+| Difficulty not adaptive enough | Medium | Iterative testing; difficulty selector |
+| Limited problem coverage | Medium | Start with algebra; expand gradually |
+
+---
+
+## Launch Checklist
+
+### Pre-Launch
+- [ ] Core features complete and tested
+- [ ] 5+ problem types successfully guided
+- [ ] Mobile responsive testing complete
+- [ ] Error handling implemented
+- [ ] Loading states in place
+- [ ] Demo video recorded
+
+### Documentation
+- [ ] README with setup instructions
+- [ ] API key configuration guide
+- [ ] Known limitations documented
+- [ ] Example interactions documented
+
+### Deployment
+- [ ] Environment variables configured
+- [ ] Production build tested
+- [ ] Firebase hosting configured
+- [ ] Domain configured (optional)
+- [ ] Analytics setup (optional)
+
+---
+
+## Future Enhancements (Post-MVP)
+
+### Phase 2 Features
+- Persistent user accounts with progress tracking
+- Problem history and performance analytics
+- Multi-subject support (physics, chemistry)
+- Collaborative mode (peer learning)
+- Teacher dashboard for classroom use
+- LMS platform integrations
+
+### Advanced AI Features
+- Adaptive difficulty based on performance
+- Learning style detection
+- Common mistake pattern recognition
+- Prerequisite skill gap identification
+
+---
+
+## Migration Path: React → React Native
+
+When ready to build mobile app (Phase 2):
+
+### What Transfers (70-80%)
+- ✅ Business logic
+- ✅ State management patterns
+- ✅ API integration code
+- ✅ Firebase integration
+- ✅ LLM prompt engineering
+- ✅ Utility functions
+
+### What Needs Rewriting (20-30%)
+- ❌ UI components (React → React Native)
+- ❌ Styling (CSS → StyleSheet)
+- ❌ Navigation (React Router → React Navigation)
+- ❌ Image upload (HTML5 → native)
+
+### Shared Code Structure
+```
+src/
+├── shared/              # 70% reusable
+│   ├── api/
+│   ├── hooks/
+│   ├── utils/
+│   └── types/
+└── web/                # 30% web-specific
+    ├── components/
+    └── styles/
+```
+
+---
+
+## References
+
+- OpenAI x Khan Academy Demo: https://www.youtube.com/watch?v=IvXZCocyU_M
+- Socratic Method in Education
+- Math Education Best Practices
+
+---
+
+**Document Version:** 1.0  
+**Last Updated:** November 3, 2025  
+**Next Review:** End of Day 2 (progress checkpoint)
