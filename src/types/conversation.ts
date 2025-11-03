@@ -5,7 +5,7 @@ export interface ConversationState {
   messages: Message[]
   problemText: string
   problemImageUrl?: string
-  status: 'idle' | 'thinking' | 'processing_image' | 'completed'
+  status: 'idle' | 'thinking' | 'error'
   stuckCount: number
   userId?: string | null
 }

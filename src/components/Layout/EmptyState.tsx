@@ -4,7 +4,7 @@ interface EmptyStateProps {
   onStartConversation?: () => void
 }
 
-export default function EmptyState({ onStartConversation }: EmptyStateProps) {
+export default function EmptyState({ onStartConversation: _onStartConversation }: EmptyStateProps) {
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center px-4 py-12">
       <div className="max-w-2xl text-center">

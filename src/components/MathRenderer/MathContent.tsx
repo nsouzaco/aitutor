@@ -18,16 +18,16 @@ export default function MathContent({ content }: MathContentProps) {
 
   return (
     <>
-      {parts.map((part, index) => {
+      {parts.map((part, partIndex) => {
         if (part.type === 'block') {
-          return <MathBlock key={index} math={part.content} />
+          return <MathBlock key={partIndex} math={part.content} />
         } else if (part.type === 'inline') {
-          return <MathInline key={index} math={part.content} />
+          return <MathInline key={partIndex} math={part.content} />
         } else {
           // Regular text - preserve whitespace and newlines
           const lines = part.content.split('\n')
           return lines.map((line, lineIndex) => (
-            <Fragment key={`${index}-${lineIndex}`}>
+            <Fragment key={`${partIndex}-${lineIndex}`}>
               {line}
               {lineIndex < lines.length - 1 && <br />}
             </Fragment>
@@ -49,7 +49,6 @@ interface ContentPart {
 function parseMathContent(content: string): ContentPart[] {
   const parts: ContentPart[] = []
   let remaining = content
-  let index = 0
 
   while (remaining.length > 0) {
     // Check for block math ($$...$$)

@@ -9,7 +9,6 @@ import {
   orderBy,
   limit,
   Timestamp,
-  serverTimestamp,
 } from 'firebase/firestore'
 import { db } from './firebaseService'
 import { ConversationState } from '../types'

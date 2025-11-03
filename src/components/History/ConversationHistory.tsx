@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Clock, MessageCircle, Trash2, Loader2 } from 'lucide-react'
+import { Clock, MessageCircle, Loader2 } from 'lucide-react'
 import { getUserConversations, ConversationDocument } from '../../services/firestoreService'
 import { useAuth } from '../../contexts'
 
