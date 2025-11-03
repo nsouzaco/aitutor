@@ -1,4 +1,4 @@
-import { BookOpen } from 'lucide-react'
+import SparkieIcon3D from './SparkieIcon3D'
 
 interface LandingPageProps {
   onGetStarted: () => void
@@ -14,9 +14,7 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
       <section className="bg-[url('https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/hero/gridBackground.png')] min-h-screen w-full bg-no-repeat bg-cover bg-center flex flex-col items-center justify-center px-4">
         {/* Logo */}
         <div className="flex flex-col items-center gap-6 mb-8">
-          <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-primary shadow-lg">
-            <BookOpen size={48} className="text-white" />
-          </div>
+          <SparkieIcon3D />
           <h1 
             className="text-6xl md:text-8xl text-gray-900"
             style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 700 }}
