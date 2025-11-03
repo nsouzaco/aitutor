@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Header, EmptyState, LoadingState } from './components/Layout'
 import { MessageList, InputArea, TypingIndicator } from './components/Chat'
 import { AuthPage } from './components/Auth'
@@ -18,7 +19,21 @@ function App() {
     setStatus,
     incrementStuckCount,
     resetStuckCount,
+    saveConversation,
+    loadConversation,
   } = useConversation()
+
+  // Auto-save conversation after each message
+  useEffect(() => {
+    if (user && conversation.messages.length > 0 && conversation.status === 'idle') {
+      // Save after a brief delay to batch rapid changes
+      const timer = setTimeout(() => {
+        saveConversation(user.uid)
+      }, 1000)
+
+      return () => clearTimeout(timer)
+    }
+  }, [conversation.messages.length, conversation.status, user, saveConversation])
 
   // Show loading state while checking authentication
   if (authLoading) {
@@ -32,6 +47,15 @@ function App() {
 
   const handleNewProblem = () => {
     clearConversation()
+  }
+
+  const handleLoadConversation = async (conversationId: string) => {
+    try {
+      await loadConversation(conversationId)
+    } catch (error) {
+      console.error('Error loading conversation:', error)
+      // Could show a toast notification here
+    }
   }
 
   const handleSendMessage = async (content: string, imageUrl?: string) => {
@@ -121,7 +145,10 @@ function App() {
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
-      <Header onNewProblem={hasMessages ? handleNewProblem : undefined} />
+      <Header 
+        onNewProblem={hasMessages ? handleNewProblem : undefined}
+        onLoadConversation={handleLoadConversation}
+      />
 
       <main className="flex-1 overflow-y-auto">
         {!hasMessages ? (

@@ -3,9 +3,14 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   ReactNode,
 } from 'react'
 import { Message, ConversationState } from '../types'
+import {
+  saveConversation as saveConversationToFirestore,
+  loadConversation as loadConversationFromFirestore,
+} from '../services/firestoreService'
 
 interface ConversationContextType {
   conversation: ConversationState
@@ -14,6 +19,8 @@ interface ConversationContextType {
   setStatus: (status: ConversationState['status']) => void
   incrementStuckCount: () => void
   resetStuckCount: () => void
+  saveConversation: (userId: string) => Promise<void>
+  loadConversation: (conversationId: string) => Promise<void>
 }
 
 const ConversationContext = createContext<ConversationContextType | undefined>(
@@ -71,6 +78,35 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     setConversation(prev => ({ ...prev, stuckCount: 0 }))
   }, [])
 
+  const saveConversation = useCallback(
+    async (userId: string) => {
+      try {
+        // Only save if there are messages
+        if (conversation.messages.length > 0) {
+          await saveConversationToFirestore(userId, conversation)
+        }
+      } catch (error) {
+        console.error('Error saving conversation:', error)
+        // Don't throw - saving is a nice-to-have, not critical
+      }
+    },
+    [conversation]
+  )
+
+  const loadConversation = useCallback(async (conversationId: string) => {
+    try {
+      const loadedConversation = await loadConversationFromFirestore(
+        conversationId
+      )
+      if (loadedConversation) {
+        setConversation(loadedConversation)
+      }
+    } catch (error) {
+      console.error('Error loading conversation:', error)
+      throw error
+    }
+  }, [])
+
   return (
     <ConversationContext.Provider
       value={{
@@ -80,6 +116,8 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
         setStatus,
         incrementStuckCount,
         resetStuckCount,
+        saveConversation,
+        loadConversation,
       }}
     >
       {children}
