@@ -1,7 +1,8 @@
 {
-  "name": "ai-math-tutor",
+  "name": "sparkie",
   "private": true,
   "version": "0.1.0",
+  "description": "Sparkie - AI Math Tutor using the Socratic Method",
   "type": "module",
   "scripts": {
     "dev": "vite",

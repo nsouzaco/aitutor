@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Header, EmptyState, LoadingState } from './components/Layout'
 import { MessageList, InputArea, TypingIndicator } from './components/Chat'
 import { AuthPage } from './components/Auth'
+import { LandingPage } from './components/Landing'
 import { useConversation, useAuth } from './contexts'
 import { sendMessage, extractTextFromImage } from './services/vercelApiService'
 import {
@@ -12,6 +13,7 @@ import {
 
 function App() {
   const { user, loading: authLoading } = useAuth()
+  const [showAuth, setShowAuth] = useState(false)
   const {
     conversation,
     addMessage,
@@ -50,8 +52,11 @@ function App() {
     return <LoadingState message="Loading..." />
   }
 
-  // Show auth page if not authenticated
+  // Show landing page or auth page if not authenticated
   if (!user) {
+    if (!showAuth) {
+      return <LandingPage onGetStarted={() => setShowAuth(true)} />
+    }
     return <AuthPage onAuthSuccess={() => {}} />
   }
 

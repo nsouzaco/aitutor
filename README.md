@@ -1,4 +1,4 @@
-# AI Math Tutor - Socratic Learning Assistant
+# Sparkie - AI Math Tutor
 
 An AI-powered math tutor that uses the Socratic method to guide students through problem-solving without giving direct answers.
 
