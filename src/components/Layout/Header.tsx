@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BookOpen, LogOut, User, History } from 'lucide-react'
+import { BookOpen, User, History } from 'lucide-react'
 import { useAuth } from '../../contexts'
 import { signOut } from '../../services/authService'
 import { ConversationHistory } from '../History'
@@ -33,55 +33,24 @@ export default function Header({ onNewProblem, onLoadConversation }: HeaderProps
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap');
       `}</style>
       <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white">
-        <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4 sm:px-6">
-          {/* Logo and Title */}
+        <div className="flex h-16 items-center justify-between px-6">
+          {/* Logo and Title - Left Side */}
           <div className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white">
               <BookOpen size={24} />
             </div>
-            <div className="flex flex-col">
-              <h1 
-                className="text-lg text-gray-900"
-                style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 700 }}
-              >
-                Sparkie
-              </h1>
-              <p className="hidden text-xs text-gray-500 sm:block">
-                Socratic Learning Assistant
-              </p>
-            </div>
+            <h1 
+              className="text-lg text-gray-900"
+              style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 600 }}
+            >
+              Sparkie
+            </h1>
           </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2">
-          {/* History Button */}
-          {user && (
-            <button
-              onClick={() => setShowHistory(true)}
-              className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-              aria-label="View conversation history"
-              title="View conversation history"
-            >
-              <History size={14} />
-              <span className="hidden sm:inline">History</span>
-            </button>
-          )}
-
-          {/* New Problem Button */}
-          {onNewProblem && (
-            <button
-              onClick={onNewProblem}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-all hover:bg-primary-dark hover:shadow-md active:scale-95"
-              aria-label="Start a new problem"
-            >
-              New Problem
-            </button>
-          )}
-
-          {/* User Menu */}
+          {/* User Menu - Right Side */}
           {user && (
             <div className="flex items-center gap-2">
-              <div className="hidden sm:flex items-center gap-1.5 text-sm text-gray-700">
+              <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700">
                 <User size={14} />
                 <span className="font-medium max-w-[120px] truncate">
                   {user.displayName || user.email}
@@ -89,17 +58,15 @@ export default function Header({ onNewProblem, onLoadConversation }: HeaderProps
               </div>
               <button
                 onClick={handleSignOut}
-                className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                className="rounded-full bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
                 aria-label="Sign out"
                 title="Sign out"
               >
-                <LogOut size={14} />
-                <span className="hidden sm:inline">Sign Out</span>
+                Sign Out
               </button>
             </div>
           )}
         </div>
-      </div>
 
         {/* Conversation History Modal */}
         {showHistory && (

@@ -1,4 +1,5 @@
-import { Lightbulb, Image, Type } from 'lucide-react'
+import { Image, Type } from 'lucide-react'
+import SparkieIcon3D from '../Landing/SparkieIcon3D'
 
 interface EmptyStateProps {
   onStartConversation?: () => void
@@ -6,11 +7,13 @@ interface EmptyStateProps {
 
 export default function EmptyState({ onStartConversation: _onStartConversation }: EmptyStateProps) {
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center px-4 py-12">
+    <div className="flex h-full flex-col items-center justify-center px-4 py-12">
       <div className="max-w-2xl text-center">
-        {/* Icon */}
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-          <Lightbulb size={40} className="text-primary" />
+        {/* Icon - Sparkie 3D Model */}
+        <div className="mx-auto mb-8 flex items-center justify-center">
+          <div className="h-24 w-24 md:h-28 md:w-28">
+            <SparkieIcon3D />
+          </div>
         </div>
 
         {/* Heading */}
@@ -40,30 +43,6 @@ export default function EmptyState({ onStartConversation: _onStartConversation }
               Take a photo of your homework or textbook
             </p>
           </div>
-        </div>
-
-        {/* Example Problems */}
-        <div className="rounded-lg bg-surface p-6 text-left">
-          <p className="mb-3 text-sm font-semibold text-gray-700">
-            Try these examples:
-          </p>
-          <ul className="space-y-2 text-sm text-gray-600">
-            <li className="flex items-start">
-              <span className="mr-2 text-primary">•</span>
-              <span>Solve for x: 2x + 5 = 13</span>
-            </li>
-            <li className="flex items-start">
-              <span className="mr-2 text-primary">•</span>
-              <span>
-                A rectangle has a perimeter of 24 cm. The length is 3 cm more
-                than the width. What are the dimensions?
-              </span>
-            </li>
-            <li className="flex items-start">
-              <span className="mr-2 text-primary">•</span>
-              <span>Factor: x² + 5x + 6</span>
-            </li>
-          </ul>
         </div>
       </div>
     </div>

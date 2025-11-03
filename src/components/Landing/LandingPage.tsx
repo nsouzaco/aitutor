@@ -12,12 +12,16 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
       `}</style>
 
       <section className="bg-[url('https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/hero/gridBackground.png')] min-h-screen w-full bg-no-repeat bg-cover bg-center flex flex-col items-center justify-center px-4">
-        {/* Logo */}
-        <div className="flex flex-col items-center gap-6 mb-8">
-          <SparkieIcon3D />
+        {/* Logo - Overlapping layout */}
+        <div className="relative flex flex-col items-center -mt-20 mb-4">
+          {/* 3D Model - behind the text */}
+          <div className="relative z-0">
+            <SparkieIcon3D />
+          </div>
+          {/* Text - in front, overlapping the bottom of the 3D model */}
           <h1 
-            className="text-6xl md:text-8xl text-gray-900"
-            style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 700 }}
+            className="text-6xl md:text-8xl text-gray-900 relative z-10 -mt-30 md:-mt-20"
+            style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 600 }}
           >
             Sparkie
           </h1>

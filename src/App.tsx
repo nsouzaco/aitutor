@@ -3,6 +3,7 @@ import { Header, EmptyState, LoadingState } from './components/Layout'
 import { MessageList, InputArea, TypingIndicator } from './components/Chat'
 import { AuthPage } from './components/Auth'
 import { LandingPage } from './components/Landing'
+import { Whiteboard } from './components/Whiteboard'
 import { useConversation, useAuth } from './contexts'
 import { sendMessage, extractTextFromImage } from './services/vercelApiService'
 import {
@@ -165,26 +166,39 @@ function App() {
         onLoadConversation={handleLoadConversation}
       />
 
-      <main className="flex-1 overflow-y-auto">
-        {!hasMessages ? (
-          <EmptyState />
-        ) : (
-          <div className="pb-32">
-            <MessageList messages={conversation.messages} />
-            {isThinking && (
-              <div className="mx-auto max-w-4xl px-4 sm:px-6">
-                <TypingIndicator />
+      {/* Split Screen Layout: Chat (35%) + Whiteboard (65%) */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Side: Chat Interface (35%) */}
+        <div className="flex w-full lg:w-[35%] flex-col border-r border-gray-200 relative">
+          {/* Scrollable Content Area */}
+          <div className="flex-1 overflow-y-auto">
+            {!hasMessages ? (
+              <EmptyState />
+            ) : (
+              <div className="pb-4">
+                <MessageList messages={conversation.messages} />
+                {isThinking && (
+                  <div className="mx-auto max-w-4xl px-4 sm:px-6">
+                    <TypingIndicator />
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
-      </main>
 
-      <InputArea
-        onSend={handleSendMessage}
-        disabled={isThinking}
-        placeholder="Type your math problem or answer..."
-      />
+          {/* Fixed Input Area */}
+          <InputArea
+            onSend={handleSendMessage}
+            disabled={isThinking}
+            placeholder="Type your math problem or answer..."
+          />
+        </div>
+
+        {/* Right Side: Whiteboard (65%) */}
+        <div className="hidden lg:flex lg:w-[65%] flex-col">
+          <Whiteboard />
+        </div>
+      </div>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useState, useRef, KeyboardEvent } from 'react'
-import { Send, ImagePlus } from 'lucide-react'
+import { Send, ImagePlus, Mic } from 'lucide-react'
 import { ImagePreview } from '../ImageUpload'
 
 interface InputAreaProps {
@@ -15,8 +15,10 @@ export default function InputArea({
 }: InputAreaProps) {
   const [input, setInput] = useState('')
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [isListening, setIsListening] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const recognitionRef = useRef<any>(null)
 
   const handleSend = () => {
     const trimmedInput = input.trim()
@@ -75,6 +77,61 @@ export default function InputArea({
     e.target.style.height = `${e.target.scrollHeight}px`
   }
 
+  const handleMicClick = () => {
+    // Check if browser supports speech recognition
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    
+    if (!SpeechRecognition) {
+      alert('Speech recognition is not supported in your browser. Please try Chrome or Edge.')
+      return
+    }
+
+    if (isListening) {
+      // Stop listening
+      recognitionRef.current?.stop()
+      setIsListening(false)
+      return
+    }
+
+    // Start listening
+    const recognition = new SpeechRecognition()
+    recognition.continuous = false
+    recognition.interimResults = false
+    recognition.lang = 'en-US'
+
+    recognition.onstart = () => {
+      setIsListening(true)
+    }
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript
+      setInput((prev) => prev + (prev ? ' ' : '') + transcript)
+      
+      // Auto-expand textarea after adding voice input
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto'
+        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+      }
+    }
+
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error)
+      setIsListening(false)
+      if (event.error === 'no-speech') {
+        alert('No speech detected. Please try again.')
+      } else if (event.error === 'not-allowed') {
+        alert('Microphone access denied. Please allow microphone access in your browser settings.')
+      }
+    }
+
+    recognition.onend = () => {
+      setIsListening(false)
+    }
+
+    recognitionRef.current = recognition
+    recognition.start()
+  }
+
   return (
     <div className="sticky bottom-0 border-t border-gray-200 bg-white shadow-lg">
       <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6">
@@ -105,37 +162,47 @@ export default function InputArea({
             <ImagePlus size={20} />
           </button>
 
-          {/* Textarea */}
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={handleInput}
-            onKeyDown={handleKeyDown}
-            disabled={disabled}
-            placeholder={placeholder}
-            rows={1}
-            className="flex-1 resize-none rounded-lg border border-gray-300 px-4 py-2.5 text-base text-gray-900 placeholder-gray-500 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:bg-gray-50 disabled:cursor-not-allowed"
-            style={{ maxHeight: '200px' }}
-            aria-label="Message input"
-          />
+          {/* Textarea - wider to fill space */}
+          <div className="flex flex-1 items-end gap-2">
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={handleInput}
+              onKeyDown={handleKeyDown}
+              disabled={disabled}
+              placeholder={placeholder}
+              rows={1}
+              className="flex-1 resize-none rounded-lg border border-gray-300 px-4 py-2.5 text-base text-gray-900 placeholder-gray-500 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:bg-gray-50 disabled:cursor-not-allowed"
+              style={{ maxHeight: '200px' }}
+              aria-label="Message input"
+            />
 
-          {/* Send Button */}
-          <button
-            onClick={handleSend}
-            disabled={disabled || (!input.trim() && !selectedImage)}
-            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-white transition-all hover:bg-primary-dark hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none active:scale-95"
-            aria-label="Send message"
-          >
-            <Send size={18} />
-          </button>
+            {/* Mic Button */}
+            <button
+              onClick={handleMicClick}
+              disabled={disabled}
+              className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                isListening
+                  ? 'border-red-500 bg-red-500 text-white animate-pulse'
+                  : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+              aria-label="Voice input"
+              title={isListening ? 'Listening... Click to stop' : 'Click to speak'}
+            >
+              <Mic size={20} />
+            </button>
+
+            {/* Send Button */}
+            <button
+              onClick={handleSend}
+              disabled={disabled || (!input.trim() && !selectedImage)}
+              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-white transition-all hover:bg-primary-dark hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none active:scale-95"
+              aria-label="Send message"
+            >
+              <Send size={18} />
+            </button>
+          </div>
         </div>
-
-        {/* Hint text */}
-        <p className="mt-2 text-xs text-gray-500">
-          Press <kbd className="rounded bg-gray-100 px-1.5 py-0.5">Enter</kbd> to send,{' '}
-          <kbd className="rounded bg-gray-100 px-1.5 py-0.5">Shift + Enter</kbd> for new line
-          {!selectedImage && ' • Click 📷 to upload an image'}
-        </p>
       </div>
     </div>
   )
