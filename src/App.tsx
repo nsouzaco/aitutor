@@ -3,7 +3,7 @@ import { Header, EmptyState, LoadingState } from './components/Layout'
 import { MessageList, InputArea, TypingIndicator } from './components/Chat'
 import { AuthPage } from './components/Auth'
 import { useConversation, useAuth } from './contexts'
-import { sendMessage, extractTextFromImage } from './services/openaiService'
+import { sendMessage, extractTextFromImage } from './services/vercelApiService'
 import {
   buildConversationContext,
   detectStuckResponse,
@@ -26,9 +26,19 @@ function App() {
   // Auto-save conversation after each message
   useEffect(() => {
     if (user && conversation.messages.length > 0 && conversation.status === 'idle') {
+      console.log('💾 Auto-saving conversation...', {
+        userId: user.uid,
+        conversationId: conversation.conversationId,
+        messageCount: conversation.messages.length,
+        problemText: conversation.problemText
+      })
       // Save after a brief delay to batch rapid changes
       const timer = setTimeout(() => {
-        saveConversation(user.uid)
+        saveConversation(user.uid).then(() => {
+          console.log('✅ Conversation saved successfully!')
+        }).catch(err => {
+          console.error('❌ Failed to save conversation:', err)
+        })
       }, 1000)
 
       return () => clearTimeout(timer)

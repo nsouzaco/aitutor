@@ -19,15 +19,23 @@ export default function ConversationHistory({
 
   useEffect(() => {
     async function loadConversations() {
-      if (!user) return
+      console.log('🔍 ConversationHistory: Loading conversations for user:', user)
+      if (!user) {
+        console.log('❌ No user logged in')
+        return
+      }
 
       try {
+        console.log('📡 Fetching conversations for userId:', user.uid)
         setLoading(true)
         const userConversations = await getUserConversations(user.uid)
+        console.log('✅ Received conversations:', userConversations.length)
+        console.log('📋 Conversation details:', userConversations)
         setConversations(userConversations)
-      } catch (err) {
-        console.error('Error loading conversations:', err)
-        setError('Failed to load conversation history')
+      } catch (err: any) {
+        console.error('❌ Error loading conversations:', err)
+        console.error('Error details:', err.message, err.code)
+        setError(`Failed to load conversation history: ${err.message || 'Unknown error'}`)
       } finally {
         setLoading(false)
       }

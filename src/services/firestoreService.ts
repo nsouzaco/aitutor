@@ -52,14 +52,20 @@ export async function saveConversation(
       conversationId: conversation.conversationId,
       userId,
       problemText: conversation.problemText,
-      messages: conversation.messages.map(msg => ({
-        id: msg.id,
-        sender: msg.sender,
-        content: msg.content,
-        timestamp: Timestamp.fromDate(msg.timestamp),
-        type: msg.type,
-        imageUrl: msg.imageUrl,
-      })),
+      messages: conversation.messages.map(msg => {
+        const baseMsg = {
+          id: msg.id,
+          sender: msg.sender,
+          content: msg.content,
+          timestamp: Timestamp.fromDate(msg.timestamp),
+        }
+        // Only add optional fields if they're defined
+        return {
+          ...baseMsg,
+          ...(msg.type && { type: msg.type }),
+          ...(msg.imageUrl && { imageUrl: msg.imageUrl }),
+        }
+      }),
       status: conversation.status,
       stuckCount: conversation.stuckCount,
       createdAt: Timestamp.now(),
