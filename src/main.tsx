@@ -1,11 +1,14 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
+import { ConversationProvider } from './contexts'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <ConversationProvider>
+      <App />
+    </ConversationProvider>
   </React.StrictMode>,
 )
 
