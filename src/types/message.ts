@@ -4,5 +4,6 @@ export interface Message {
   content: string
   timestamp: Date
   type?: 'text' | 'hint' | 'celebration'
+  imageUrl?: string // For user-uploaded images
 }
 

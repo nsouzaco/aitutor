@@ -1,0 +1,109 @@
+import { Fragment } from 'react'
+import MathInline from './MathInline'
+import MathBlock from './MathBlock'
+
+interface MathContentProps {
+  content: string
+}
+
+/**
+ * Parse and render text with LaTeX math notation
+ * Supports:
+ * - Inline math: $x^2 + 5$
+ * - Block math: $$\frac{a}{b}$$
+ */
+export default function MathContent({ content }: MathContentProps) {
+  // Split content by block math ($$...$$) and inline math ($...$)
+  const parts = parseMathContent(content)
+
+  return (
+    <>
+      {parts.map((part, index) => {
+        if (part.type === 'block') {
+          return <MathBlock key={index} math={part.content} />
+        } else if (part.type === 'inline') {
+          return <MathInline key={index} math={part.content} />
+        } else {
+          // Regular text - preserve whitespace and newlines
+          const lines = part.content.split('\n')
+          return lines.map((line, lineIndex) => (
+            <Fragment key={`${index}-${lineIndex}`}>
+              {line}
+              {lineIndex < lines.length - 1 && <br />}
+            </Fragment>
+          ))
+        }
+      })}
+    </>
+  )
+}
+
+interface ContentPart {
+  type: 'text' | 'inline' | 'block'
+  content: string
+}
+
+/**
+ * Parse content and split into text and math parts
+ */
+function parseMathContent(content: string): ContentPart[] {
+  const parts: ContentPart[] = []
+  let remaining = content
+  let index = 0
+
+  while (remaining.length > 0) {
+    // Check for block math ($$...$$)
+    const blockMatch = remaining.match(/\$\$(.*?)\$\$/s)
+    if (blockMatch && blockMatch.index !== undefined) {
+      // Add text before block math
+      if (blockMatch.index > 0) {
+        parts.push({
+          type: 'text',
+          content: remaining.slice(0, blockMatch.index),
+        })
+      }
+
+      // Add block math
+      parts.push({
+        type: 'block',
+        content: blockMatch[1].trim(),
+      })
+
+      remaining = remaining.slice(blockMatch.index + blockMatch[0].length)
+      continue
+    }
+
+    // Check for inline math ($...$)
+    const inlineMatch = remaining.match(/\$(.*?)\$/)
+    if (inlineMatch && inlineMatch.index !== undefined) {
+      // Add text before inline math
+      if (inlineMatch.index > 0) {
+        parts.push({
+          type: 'text',
+          content: remaining.slice(0, inlineMatch.index),
+        })
+      }
+
+      // Add inline math
+      parts.push({
+        type: 'inline',
+        content: inlineMatch[1].trim(),
+      })
+
+      remaining = remaining.slice(inlineMatch.index + inlineMatch[0].length)
+      continue
+    }
+
+    // No more math found, add remaining as text
+    if (remaining.length > 0) {
+      parts.push({
+        type: 'text',
+        content: remaining,
+      })
+    }
+    break
+  }
+
+  return parts
+}
+

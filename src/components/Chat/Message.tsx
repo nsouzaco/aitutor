@@ -1,5 +1,6 @@
 import { Bot, User } from 'lucide-react'
 import { Message as MessageType } from '../../types'
+import { MathContent } from '../MathRenderer'
 
 interface MessageProps {
   message: MessageType
@@ -48,9 +49,18 @@ export default function Message({ message }: MessageProps) {
           {isCelebration && (
             <div className="mb-1 text-2xl">🎉</div>
           )}
-          <p className={`text-${isUser ? 'base' : 'lg'} whitespace-pre-wrap text-gray-900`}>
-            {message.content}
-          </p>
+          {message.imageUrl && (
+            <div className="mb-3">
+              <img
+                src={message.imageUrl}
+                alt="Uploaded math problem"
+                className="max-h-64 rounded-lg border border-gray-200"
+              />
+            </div>
+          )}
+          <div className={`text-${isUser ? 'base' : 'lg'} text-gray-900`}>
+            <MathContent content={message.content} />
+          </div>
         </div>
 
         {/* Timestamp */}

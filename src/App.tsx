@@ -1,7 +1,8 @@
-import { Header, EmptyState } from './components/Layout'
+import { Header, EmptyState, LoadingState } from './components/Layout'
 import { MessageList, InputArea, TypingIndicator } from './components/Chat'
-import { useConversation } from './contexts'
-import { sendMessage } from './services/openaiService'
+import { AuthPage } from './components/Auth'
+import { useConversation, useAuth } from './contexts'
+import { sendMessage, extractTextFromImage } from './services/openaiService'
 import {
   buildConversationContext,
   detectStuckResponse,
@@ -9,6 +10,7 @@ import {
 } from './utils/promptBuilder'
 
 function App() {
+  const { user, loading: authLoading } = useAuth()
   const {
     conversation,
     addMessage,
@@ -18,16 +20,58 @@ function App() {
     resetStuckCount,
   } = useConversation()
 
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return <LoadingState message="Loading..." />
+  }
+
+  // Show auth page if not authenticated
+  if (!user) {
+    return <AuthPage onAuthSuccess={() => {}} />
+  }
+
   const handleNewProblem = () => {
     clearConversation()
   }
 
-  const handleSendMessage = async (content: string) => {
-    // Add user message
-    addMessage(content, 'user')
+  const handleSendMessage = async (content: string, imageUrl?: string) => {
+    let messageContent = content
+    
+    // Show typing indicator early if processing image
+    if (imageUrl) {
+      setStatus('thinking')
+    }
+
+    // If image is provided, extract text using Vision API
+    if (imageUrl) {
+      try {
+        // Extract base64 data from data URL
+        const base64Data = imageUrl.split(',')[1]
+        const extractedText = await extractTextFromImage(base64Data)
+        
+        // Combine extracted text with user's message
+        messageContent = content
+          ? `${content}\n\nExtracted from image: ${extractedText}`
+          : `Problem from image: ${extractedText}`
+        
+        // Add user message with image
+        addMessage(messageContent, 'user', 'text', imageUrl)
+      } catch (error: any) {
+        console.error('Error extracting text from image:', error)
+        addMessage(
+          `I had trouble reading the image. ${error.message || 'Please try again or type your problem.'}`,
+          'assistant'
+        )
+        setStatus('idle')
+        return
+      }
+    } else {
+      // Add regular text message
+      addMessage(messageContent, 'user')
+    }
 
     // Check if user seems stuck
-    if (detectStuckResponse(content)) {
+    if (detectStuckResponse(messageContent)) {
       incrementStuckCount()
     } else if (conversation.messages.length > 0) {
       // Reset stuck count if they seem to be making progress
@@ -43,7 +87,7 @@ function App() {
         [...conversation.messages, {
           id: 'temp',
           sender: 'user',
-          content,
+          content: messageContent,
           timestamp: new Date(),
         }],
         conversation.stuckCount
@@ -61,13 +105,13 @@ function App() {
       setStatus('idle')
     } catch (error: any) {
       console.error('Error getting response:', error)
-      
+
       // Add error message
       addMessage(
         `I'm having trouble connecting right now. ${error.message || 'Please try again in a moment.'}`,
         'assistant'
       )
-      
+
       setStatus('idle')
     }
   }

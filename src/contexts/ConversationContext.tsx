@@ -9,7 +9,7 @@ import { Message, ConversationState } from '../types'
 
 interface ConversationContextType {
   conversation: ConversationState
-  addMessage: (content: string, sender: 'user' | 'assistant', type?: Message['type']) => void
+  addMessage: (content: string, sender: 'user' | 'assistant', type?: Message['type'], imageUrl?: string) => void
   clearConversation: () => void
   setStatus: (status: ConversationState['status']) => void
   incrementStuckCount: () => void
@@ -32,13 +32,14 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
   const [conversation, setConversation] = useState<ConversationState>(initialState)
 
   const addMessage = useCallback(
-    (content: string, sender: 'user' | 'assistant', type?: Message['type']) => {
+    (content: string, sender: 'user' | 'assistant', type?: Message['type'], imageUrl?: string) => {
       const newMessage: Message = {
         id: crypto.randomUUID(),
         sender,
         content,
         timestamp: new Date(),
         type,
+        imageUrl,
       }
 
       setConversation(prev => ({

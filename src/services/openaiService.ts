@@ -37,7 +37,7 @@ export async function sendMessage(
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4-turbo-preview',
+      model: 'gpt-4o', // GPT-4o is the latest model as of 2024
       messages,
       temperature,
       max_tokens: maxTokens,
@@ -63,19 +63,19 @@ export async function extractTextFromImage(
 ): Promise<string> {
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4-vision-preview',
+      model: 'gpt-4o', // GPT-4o supports vision
       messages: [
         {
           role: 'user',
           content: [
             {
               type: 'text',
-              text: 'Extract the math problem from this image. Return ONLY the problem text, preserving all mathematical notation. If the image contains handwritten or printed math, transcribe it accurately using standard notation. If unclear, indicate what needs clarification.',
+              text: 'Extract the math problem from this image. Return ONLY the problem text, preserving all mathematical notation. If the image contains handwritten or printed math, transcribe it accurately using standard notation (or LaTeX where appropriate). If unclear, indicate what needs clarification.',
             },
             {
               type: 'image_url',
               image_url: {
-                url: `data:image/jpeg;base64,${imageBase64}`,
+                url: imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`,
               },
             },
           ],
