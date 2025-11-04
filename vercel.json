@@ -9,6 +9,7 @@
       "destination": "/api/$1"
     }
   ],
+  "public": true,
   "headers": [
     {
       "source": "/api/(.*)",
