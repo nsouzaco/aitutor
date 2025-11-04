@@ -4,17 +4,23 @@ import { MessageList, InputArea, TypingIndicator } from './components/Chat'
 import { AuthPage } from './components/Auth'
 import { LandingPage } from './components/Landing'
 import { Whiteboard } from './components/Whiteboard'
+import { ProgressDashboard } from './components/Dashboard'
+import { TopicBrowser } from './components/Topics'
 import { useConversation, useAuth } from './contexts'
 import { sendMessage, extractTextFromImage } from './services/vercelApiService'
+import { initializeStudentProfile } from './services/progressService'
 import {
   buildConversationContext,
   detectStuckResponse,
   detectCelebration,
 } from './utils/promptBuilder'
 
+type ViewMode = 'tutor' | 'dashboard' | 'topics'
+
 function App() {
   const { user, loading: authLoading } = useAuth()
   const [showAuth, setShowAuth] = useState(false)
+  const [currentView, setCurrentView] = useState<ViewMode>('tutor')
   const {
     conversation,
     addMessage,
@@ -25,6 +31,15 @@ function App() {
     saveConversation,
     loadConversation,
   } = useConversation()
+
+  // Initialize student profile when user logs in
+  useEffect(() => {
+    if (user?.uid && user?.email) {
+      initializeStudentProfile(user.uid, user.email).catch(err => {
+        console.error('Error initializing student profile:', err)
+      })
+    }
+  }, [user])
 
   // Auto-save conversation after each message
   useEffect(() => {
@@ -63,15 +78,28 @@ function App() {
 
   const handleNewProblem = () => {
     clearConversation()
+    setCurrentView('tutor')
   }
 
   const handleLoadConversation = async (conversationId: string) => {
     try {
       await loadConversation(conversationId)
+      setCurrentView('tutor')
     } catch (error) {
       console.error('Error loading conversation:', error)
       // Could show a toast notification here
     }
+  }
+
+  const handleNavigate = (view: ViewMode) => {
+    setCurrentView(view)
+  }
+
+  const handleStartPractice = (subtopicId: string) => {
+    // TODO: In future, this will load the specific subtopic problem
+    console.log('Start practice for subtopic:', subtopicId)
+    setCurrentView('tutor')
+    clearConversation()
   }
 
   const handleWhiteboardEvaluate = async (imageDataUrl: string) => {
@@ -188,48 +216,77 @@ function App() {
   const hasMessages = conversation.messages.length > 0
   const isThinking = conversation.status === 'thinking'
 
-  return (
-    <div className="flex h-screen flex-col bg-white">
-      <Header 
-        onNewProblem={hasMessages ? handleNewProblem : undefined}
-        onLoadConversation={handleLoadConversation}
-      />
+  // Render different views based on currentView
+  const renderView = () => {
+    if (!user) return null
 
-      {/* Split Screen Layout: Chat (35%) + Whiteboard (65%) */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Side: Chat Interface (35%) */}
-        <div className="flex w-[35%] flex-col border-r border-gray-200">
-          {/* Scrollable Content Area - Fixed height with scroll */}
-          <div className="flex-1 overflow-y-auto min-h-0">
-            {!hasMessages ? (
-              <EmptyState />
-            ) : (
-              <div className="pb-4">
-                <MessageList messages={conversation.messages} />
-                {isThinking && (
-                  <div className="mx-auto max-w-4xl px-4 sm:px-6">
-                    <TypingIndicator />
+    switch (currentView) {
+      case 'dashboard':
+        return (
+          <ProgressDashboard 
+            userId={user.uid}
+            onStartPractice={handleStartPractice}
+          />
+        )
+      
+      case 'topics':
+        return (
+          <TopicBrowser
+            userId={user.uid}
+            onStartPractice={handleStartPractice}
+          />
+        )
+      
+      case 'tutor':
+      default:
+        return (
+          <div className="flex flex-1 overflow-hidden">
+            {/* Left Side: Chat Interface (35%) */}
+            <div className="flex w-[35%] flex-col border-r border-gray-200">
+              {/* Scrollable Content Area - Fixed height with scroll */}
+              <div className="flex-1 overflow-y-auto min-h-0">
+                {!hasMessages ? (
+                  <EmptyState />
+                ) : (
+                  <div className="pb-4">
+                    <MessageList messages={conversation.messages} />
+                    {isThinking && (
+                      <div className="mx-auto max-w-4xl px-4 sm:px-6">
+                        <TypingIndicator />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
-          </div>
 
-          {/* Fixed Input Area - Always visible at bottom */}
-          <div className="flex-shrink-0">
-            <InputArea
-              onSend={handleSendMessage}
-              disabled={isThinking}
-              placeholder="Type your math problem or answer..."
-            />
-          </div>
-        </div>
+              {/* Fixed Input Area - Always visible at bottom */}
+              <div className="flex-shrink-0">
+                <InputArea
+                  onSend={handleSendMessage}
+                  disabled={isThinking}
+                  placeholder="Type your math problem or answer..."
+                />
+              </div>
+            </div>
 
-        {/* Right Side: Whiteboard (65%) */}
-        <div className="flex w-[65%] flex-col">
-          <Whiteboard onEvaluate={handleWhiteboardEvaluate} />
-        </div>
-      </div>
+            {/* Right Side: Whiteboard (65%) */}
+            <div className="flex w-[65%] flex-col">
+              <Whiteboard onEvaluate={handleWhiteboardEvaluate} />
+            </div>
+          </div>
+        )
+    }
+  }
+
+  return (
+    <div className="flex h-screen flex-col bg-white">
+      <Header 
+        currentView={currentView}
+        onNewProblem={hasMessages ? handleNewProblem : undefined}
+        onLoadConversation={handleLoadConversation}
+        onNavigate={handleNavigate}
+      />
+      {renderView()}
     </div>
   )
 }

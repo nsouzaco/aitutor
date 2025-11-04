@@ -1,15 +1,17 @@
 import { useState } from 'react'
-import { BookOpen, User, History } from 'lucide-react'
+import { BookOpen, User, History, LayoutDashboard, Library, MessageSquare } from 'lucide-react'
 import { useAuth } from '../../contexts'
 import { signOut } from '../../services/authService'
 import { ConversationHistory } from '../History'
 
 interface HeaderProps {
+  currentView?: 'tutor' | 'dashboard' | 'topics'
   onNewProblem?: () => void
   onLoadConversation?: (conversationId: string) => void
+  onNavigate?: (view: 'tutor' | 'dashboard' | 'topics') => void
 }
 
-export default function Header({ onNewProblem, onLoadConversation }: HeaderProps) {
+export default function Header({ currentView = 'tutor', onNewProblem, onLoadConversation, onNavigate }: HeaderProps) {
   const { user } = useAuth()
   const [showHistory, setShowHistory] = useState(false)
 
@@ -35,16 +37,57 @@ export default function Header({ onNewProblem, onLoadConversation }: HeaderProps
       <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white">
         <div className="flex h-16 items-center justify-between px-6">
           {/* Logo and Title - Left Side */}
-          <div className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white">
-              <BookOpen size={24} />
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white">
+                <BookOpen size={24} />
+              </div>
+              <h1 
+                className="text-lg text-gray-900"
+                style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 600 }}
+              >
+                Sparkie
+              </h1>
             </div>
-            <h1 
-              className="text-lg text-gray-900"
-              style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 600 }}
-            >
-              Sparkie
-            </h1>
+
+            {/* Navigation */}
+            {user && onNavigate && (
+              <nav className="hidden md:flex items-center gap-1">
+                <button
+                  onClick={() => onNavigate('tutor')}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    currentView === 'tutor'
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <MessageSquare size={16} />
+                  <span>Tutor</span>
+                </button>
+                <button
+                  onClick={() => onNavigate('dashboard')}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    currentView === 'dashboard'
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <LayoutDashboard size={16} />
+                  <span>Dashboard</span>
+                </button>
+                <button
+                  onClick={() => onNavigate('topics')}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    currentView === 'topics'
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <Library size={16} />
+                  <span>Topics</span>
+                </button>
+              </nav>
+            )}
           </div>
 
           {/* User Menu - Right Side */}
