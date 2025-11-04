@@ -74,6 +74,16 @@ function App() {
     }
   }
 
+  const handleWhiteboardEvaluate = async (imageDataUrl: string) => {
+    console.log('🎨 [App] Whiteboard evaluate called')
+    console.log('📊 [App] Image data URL length:', imageDataUrl.length)
+    console.log('📊 [App] Image data URL prefix:', imageDataUrl.substring(0, 50))
+    
+    // Use existing handleSendMessage flow with whiteboard image
+    // Add context message for whiteboard evaluation - emphasize Socratic method
+    await handleSendMessage('Here is my work. What do you think?', imageDataUrl)
+  }
+
   const handleSendMessage = async (content: string, imageUrl?: string) => {
     let messageContent = content
     
@@ -85,11 +95,17 @@ function App() {
     // If image is provided, extract text using Vision API
     if (imageUrl) {
       try {
+        console.log('🖼️ [App] Processing image, URL length:', imageUrl.length)
         // Extract base64 data from data URL
         const base64Data = imageUrl.split(',')[1]
+        console.log('📦 [App] Base64 data length:', base64Data?.length || 0)
+        
         // Check if this is a whiteboard evaluation (contains whiteboard context)
         const isWhiteboardEvaluation = content.toLowerCase().includes('here is my work') || content.toLowerCase().includes('what do you think')
+        console.log('🎯 [App] Is whiteboard evaluation:', isWhiteboardEvaluation)
+        
         const extractedText = await extractTextFromImage(base64Data, isWhiteboardEvaluation)
+        console.log('✅ [App] Text extracted successfully:', extractedText.substring(0, 100))
         
         // Combine extracted text with user's message
         // For whiteboard evaluation, format more naturally
@@ -211,7 +227,7 @@ function App() {
 
         {/* Right Side: Whiteboard (65%) */}
         <div className="flex w-[65%] flex-col">
-          <Whiteboard />
+          <Whiteboard onEvaluate={handleWhiteboardEvaluate} />
         </div>
       </div>
     </div>

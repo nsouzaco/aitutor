@@ -1,5 +1,5 @@
 import { useState, useRef, KeyboardEvent } from 'react'
-import { Send, ImagePlus, Mic } from 'lucide-react'
+import { ImagePlus, Mic } from 'lucide-react'
 import { ImagePreview } from '../ImageUpload'
 
 interface InputAreaProps {
@@ -134,7 +134,7 @@ export default function InputArea({
 
   return (
     <div className="sticky bottom-0 border-t border-gray-200 bg-white shadow-lg">
-      <div className="mx-auto w-full max-w-6xl px-4 py-4 sm:px-6">
+      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6" style={{ paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>
         {/* Image Preview */}
         {selectedImage && (
           <div className="mb-3">

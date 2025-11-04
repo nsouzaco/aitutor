@@ -52,28 +52,43 @@ export async function sendMessage(options: SendMessageOptions): Promise<string> 
 
 /**
  * Extract text from an image using the Vercel Vision API endpoint
+ * @param imageBase64 - Base64 encoded image data
+ * @param evaluationMode - If true, extracts content for evaluation (whiteboard drawings)
  */
-export async function extractTextFromImage(imageBase64: string): Promise<string> {
+export async function extractTextFromImage(
+  imageBase64: string,
+  evaluationMode: boolean = false
+): Promise<string> {
   try {
-    const response = await fetch(`${API_BASE_URL}/extract-image`, {
+    const url = `${API_BASE_URL}/extract-image`
+    console.log('🌐 [vercelApiService] Calling extract-image API:', url)
+    console.log('📊 [vercelApiService] Image base64 length:', imageBase64?.length || 0)
+    console.log('🎯 [vercelApiService] Evaluation mode:', evaluationMode)
+    
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         imageBase64,
+        evaluationMode,
       }),
     })
 
+    console.log('📡 [vercelApiService] Response status:', response.status, response.statusText)
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
+      console.error('❌ [vercelApiService] Error response:', errorData)
       throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`)
     }
 
     const data = await response.json()
+    console.log('✅ [vercelApiService] Success, content length:', data.content?.length || 0)
     return data.content
   } catch (error: any) {
-    console.error('Vercel Vision API Error:', error)
+    console.error('❌ [vercelApiService] Vercel Vision API Error:', error)
     throw new Error(error.message || 'Failed to extract text from image')
   }
 }

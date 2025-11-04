@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react'
-import { Pencil, Eraser, Trash2, Undo, Download } from 'lucide-react'
+import { Pencil, Eraser, Trash2, Undo, Download, Send } from 'lucide-react'
 
 interface Point {
   x: number
@@ -13,7 +13,11 @@ interface DrawingAction {
   width: number
 }
 
-export default function Whiteboard() {
+interface WhiteboardProps {
+  onEvaluate?: (imageDataUrl: string) => void
+}
+
+export default function Whiteboard({ onEvaluate }: WhiteboardProps = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [isDrawing, setIsDrawing] = useState(false)
@@ -288,6 +292,16 @@ export default function Whiteboard() {
     link.click()
   }
 
+  const handleEvaluate = () => {
+    const canvas = canvasRef.current
+    if (!canvas || !onEvaluate) return
+
+    // Get canvas as data URL
+    const imageDataUrl = canvas.toDataURL('image/png')
+    console.log('📤 [Whiteboard] Sending canvas for evaluation')
+    onEvaluate(imageDataUrl)
+  }
+
   return (
     <div className="flex h-full w-full flex-col bg-gray-50" style={{ height: '100%' }}>
       <style>{`
@@ -402,6 +416,14 @@ export default function Whiteboard() {
             >
               <Download size={16} />
               <span className="hidden sm:inline">Save</span>
+            </button>
+            <button
+              onClick={handleEvaluate}
+              className="flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200"
+              title="Get feedback on your work"
+            >
+              <Send size={16} />
+              <span className="hidden sm:inline">Evaluate</span>
             </button>
           </div>
         </div>

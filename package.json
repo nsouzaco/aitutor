@@ -5,7 +5,8 @@
   "description": "Sparkie - AI Math Tutor using the Socratic Method",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vercel dev",
+    "dev:vite": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",

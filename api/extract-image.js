@@ -19,7 +19,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { imageBase64 } = req.body;
+    const { imageBase64, evaluationMode } = req.body;
 
     // Validate request body
     if (!imageBase64) {
@@ -34,6 +34,11 @@ export default async function handler(req, res) {
       ? imageBase64 
       : `data:image/jpeg;base64,${imageBase64}`;
 
+    // Different prompts for evaluation mode (whiteboard) vs extraction mode (uploaded images)
+    const promptText = evaluationMode
+      ? 'Analyze this student\'s work on the whiteboard. Describe what you see: any mathematical equations, diagrams, problem-solving steps, or work shown. Use LaTeX notation for all mathematical expressions. Use $ for inline math (like $x^2$) and $$ for block/display math (like $$\\frac{a}{b}$$). Be detailed about what the student has drawn or written, including any partial solutions or work shown.'
+      : 'Extract the math problem from this image. Return ONLY the math equation or problem. Use LaTeX notation for all mathematical expressions. Use $ for inline math (like $x^2$) and $$ for block/display math (like $$\\frac{a}{b}$$). Transcribe handwritten or printed math accurately. If multiple equations, separate with line breaks.';
+
     // Call OpenAI Vision API
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
@@ -43,7 +48,7 @@ export default async function handler(req, res) {
           content: [
             {
               type: 'text',
-              text: 'Extract the math problem from this image. Return ONLY the math equation or problem. Use LaTeX notation for all mathematical expressions (wrap equations in \\( \\) for inline math or \\[ \\] for display math). Transcribe handwritten or printed math accurately. If multiple equations, separate with line breaks.',
+              text: promptText,
             },
             {
               type: 'image_url',
@@ -54,7 +59,7 @@ export default async function handler(req, res) {
           ],
         },
       ],
-      max_tokens: 300,
+      max_tokens: evaluationMode ? 500 : 300,
     });
 
     let content = response.choices[0]?.message?.content;
@@ -66,8 +71,19 @@ export default async function handler(req, res) {
     // Convert LaTeX delimiters to our expected format
     // \(...\) -> $...$  (inline math)
     // \[...\] -> $$...$$ (block math)
-    content = content.replace(/\\\((.*?)\\\)/g, '$$$1$$');
-    content = content.replace(/\\\[(.*?)\\\]/g, '$$$$$$1$$$$');
+    // Handle both escaped and unescaped delimiters
+    // Use replacement function to avoid $1 being interpreted as replacement group
+    content = content.replace(/\\\((.*?)\\\)/g, (match, p1) => `$${p1}$`);
+    content = content.replace(/\\\[(.*?)\\\]/g, (match, p1) => `$$${p1}$$`);
+    
+    // If API returns $...$ format directly, preserve it (no conversion needed)
+    // The MathContent component will handle $...$ format correctly
+    
+    // Clean up any double-wrapping issues
+    // Fix patterns like $ $x$ $ (should be just $x$)
+    content = content.replace(/\$\s+\$([^$]+)\$\s+\$/g, '$$$1$');
+    // Fix patterns like $$...$$$ (should be just $$...$$)
+    content = content.replace(/\$\$\$+/g, '$$');
 
     // Return successful response
     return res.status(200).json({ content });

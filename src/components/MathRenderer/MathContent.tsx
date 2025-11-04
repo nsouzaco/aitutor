@@ -45,13 +45,14 @@ interface ContentPart {
 
 /**
  * Parse content and split into text and math parts
+ * Handles both $...$ (inline) and $$...$$ (block) math
  */
 function parseMathContent(content: string): ContentPart[] {
   const parts: ContentPart[] = []
   let remaining = content
 
   while (remaining.length > 0) {
-    // Check for block math ($$...$$)
+    // Check for block math ($$...$$) first - must come before inline to avoid conflicts
     const blockMatch = remaining.match(/\$\$(.*?)\$\$/s)
     if (blockMatch && blockMatch.index !== undefined) {
       // Add text before block math
@@ -62,18 +63,22 @@ function parseMathContent(content: string): ContentPart[] {
         })
       }
 
-      // Add block math
-      parts.push({
-        type: 'block',
-        content: blockMatch[1].trim(),
-      })
+      // Add block math (remove any leading/trailing whitespace)
+      const mathContent = blockMatch[1].trim()
+      if (mathContent) {
+        parts.push({
+          type: 'block',
+          content: mathContent,
+        })
+      }
 
       remaining = remaining.slice(blockMatch.index + blockMatch[0].length)
       continue
     }
 
-    // Check for inline math ($...$)
-    const inlineMatch = remaining.match(/\$(.*?)\$/)
+    // Check for inline math ($...$) - must not start with $$ (already handled above)
+    // Simple regex that doesn't match if preceded by $
+    const inlineMatch = remaining.match(/\$(?!\$)(.*?)\$(?!\$)/)
     if (inlineMatch && inlineMatch.index !== undefined) {
       // Add text before inline math
       if (inlineMatch.index > 0) {
@@ -83,11 +88,14 @@ function parseMathContent(content: string): ContentPart[] {
         })
       }
 
-      // Add inline math
-      parts.push({
-        type: 'inline',
-        content: inlineMatch[1].trim(),
-      })
+      // Add inline math (remove any leading/trailing whitespace)
+      const mathContent = inlineMatch[1].trim()
+      if (mathContent) {
+        parts.push({
+          type: 'inline',
+          content: mathContent,
+        })
+      }
 
       remaining = remaining.slice(inlineMatch.index + inlineMatch[0].length)
       continue

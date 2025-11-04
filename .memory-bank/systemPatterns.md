@@ -181,9 +181,71 @@ LANGUAGE:
 - Use "we" not "you" (collaborative)
 - Celebrate small wins
 - Never express frustration
-- Keep questions focused and clear
-`;
+
+### 4. Whiteboard Evaluation Pattern
+
+**Pattern:** Callback-based integration with conversation flow
+
+```typescript
+// Whiteboard component accepts onEvaluate callback
+interface WhiteboardProps {
+  onEvaluate?: (imageDataUrl: string) => void
+}
+
+// Canvas capture combines both layers
+const captureCanvasImage = (): string | null => {
+  const tempCanvas = document.createElement('canvas')
+  const tempCtx = tempCanvas.getContext('2d')
+  
+  // Combine grid background + drawing foreground
+  tempCtx.drawImage(gridCanvas, 0, 0)
+  tempCtx.drawImage(canvas, 0, 0)
+  
+  return tempCanvas.toDataURL('image/png')
+}
+
+// Integration flow:
+// 1. User clicks Evaluate
+// 2. Capture canvas image (combines layers)
+// 3. Call onEvaluate callback with image data
+// 4. App.tsx: handleWhiteboardEvaluate
+// 5. Send to Vision API with evaluation mode
+// 6. Add message to conversation
+// 7. AI provides Socratic feedback
 ```
+
+**Why:**
+- Separates whiteboard component from conversation logic
+- Reuses existing image processing flow
+- Clean separation of concerns
+- Easy to test and maintain
+
+**Evaluation Mode:**
+- API detects evaluation mode via `evaluationMode` flag
+- Enhanced prompt for whiteboard analysis
+- Increased token limit for detailed feedback
+- AI analyzes student work and provides Socratic guidance
+
+### 5. Image Processing Pattern
+
+**Pattern:** OCR with validation and fallback
+
+```
+Image Upload → Compress → Send to Vision API → Extract Text → Validate → Use or Re-prompt
+```
+
+**Steps:**
+1. User uploads image
+2. Client-side compression (<5MB)
+3. Send to OpenAI Vision API with prompt:
+   ```
+   "Extract the math problem from this image. 
+    Return only the problem text, preserving all mathematical notation.
+    If unclear, indicate what needs clarification."
+   ```
+4. Validate extraction quality
+5. Show preview to user for confirmation
+6. If poor quality, allow text re-entry
 
 **Context Building:**
 ```typescript
@@ -196,9 +258,7 @@ const messages = [
 ];
 ```
 
-### 4. Image Processing Pattern
-
-**Pattern:** OCR with validation and fallback
+### 6. Math Rendering Pattern
 
 ```
 Image Upload → Compress → Send to Vision API → Extract Text → Validate → Use or Re-prompt

@@ -5,13 +5,17 @@ import { SOCRATIC_SYSTEM_PROMPT } from '../constants'
 /**
  * Build the conversation context for OpenAI API
  * Includes system prompt and recent conversation history
+ * @param messages - Array of conversation messages
+ * @param stuckCount - Number of times student has been stuck
+ * @param isWhiteboardEvaluation - Whether the last message is a whiteboard evaluation
  */
 export function buildConversationContext(
   messages: Message[],
-  stuckCount: number = 0
+  stuckCount: number = 0,
+  isWhiteboardEvaluation: boolean = false
 ): ChatMessage[] {
   // Start with system prompt
-  const systemPrompt = buildSystemPrompt(stuckCount)
+  const systemPrompt = buildSystemPrompt(stuckCount, isWhiteboardEvaluation)
   
   const contextMessages: ChatMessage[] = [
     {
@@ -35,16 +39,33 @@ export function buildConversationContext(
 
 /**
  * Build system prompt with hint level guidance based on stuck count
+ * @param stuckCount - Number of times student has been stuck
+ * @param isWhiteboardEvaluation - Whether this is a whiteboard evaluation (student sharing work)
  */
-function buildSystemPrompt(stuckCount: number): string {
+function buildSystemPrompt(stuckCount: number, isWhiteboardEvaluation: boolean = false): string {
   let hintGuidance = ''
+  
+  // Special guidance for whiteboard evaluations
+  if (isWhiteboardEvaluation) {
+    hintGuidance = `\n\nCRITICAL - STUDENT SHARING WORK:
+When a student shares their work (drawing, equation, or solution steps):
+- DO NOT give direct steps or solutions
+- DO NOT list out "here are the steps to solve"
+- Instead, ask ONE Socratic question about their work
+- Examples: "What do you notice about this equation?" "What would happen if you tried...?" "What's the goal here?"
+- Guide them to discover the next step themselves
+- If their work is correct, celebrate and ask what they think comes next
+- If their work has an error, ask a question that helps them see it
+- NEVER say "Here are the steps: 1. Subtract 1, 2. Divide by 2" etc.
+- The student is showing you their work - guide them with questions, don't solve it for them!`
+  }
 
   if (stuckCount >= 3) {
-    hintGuidance = `\n\nIMPORTANT: The student has been stuck for ${stuckCount} turns. Provide a MORE CONCRETE hint (Level 3-4). Give specific direction or show a similar worked example, but still don't solve it completely.`
+    hintGuidance += `\n\nIMPORTANT: The student has been stuck for ${stuckCount} turns. Provide a MORE CONCRETE hint (Level 3-4). Give specific direction or show a similar worked example, but still don't solve it completely.`
   } else if (stuckCount >= 2) {
-    hintGuidance = `\n\nNOTE: The student seems stuck (${stuckCount} uncertain responses). Provide a helpful hint (Level 2-3). Narrow down the options or give more specific guidance.`
+    hintGuidance += `\n\nNOTE: The student seems stuck (${stuckCount} uncertain responses). Provide a helpful hint (Level 2-3). Narrow down the options or give more specific guidance.`
   } else if (stuckCount === 1) {
-    hintGuidance = `\n\nNOTE: The student may be uncertain. Consider providing a gentle hint if needed, but try a clarifying question first.`
+    hintGuidance += `\n\nNOTE: The student may be uncertain. Consider providing a gentle hint if needed, but try a clarifying question first.`
   }
 
   return SOCRATIC_SYSTEM_PROMPT + hintGuidance

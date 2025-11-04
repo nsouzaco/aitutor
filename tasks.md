@@ -2079,6 +2079,187 @@ This task list follows an optimized build order that prioritizes working softwar
 
 ---
 
+## Phase 2: Whiteboard Evaluation Integration
+
+### P2.1 Add Evaluate Button to Whiteboard
+**Priority:** P1 (Important)  
+**Estimated Time:** 30 minutes  
+**Dependencies:** Whiteboard component exists
+
+**Tasks:**
+- [x] Add "Evaluate" button to whiteboard toolbar (left of Undo button)
+- [x] Use CheckCircle icon from Lucide React
+- [x] Style consistent with existing toolbar buttons
+- [x] Add loading state with spinner
+- [x] Position button in actions section
+
+**Testing:**
+- [x] Button renders correctly
+- [x] Button positioned correctly
+- [x] Loading state displays during processing
+- [x] Styling matches existing buttons
+
+**Acceptance Criteria:**
+- ✅ Evaluate button visible in toolbar
+- ✅ Button positioned left of Undo button
+- ✅ Loading spinner shows during evaluation
+- ✅ Button disabled when canvas is empty
+
+---
+
+### P2.2 Canvas Capture Functionality
+**Priority:** P1 (Important)  
+**Estimated Time:** 1 hour  
+**Dependencies:** P2.1
+
+**Tasks:**
+- [x] Create `captureCanvasImage()` function
+- [x] Combine grid background and drawing foreground layers
+- [x] Create temporary canvas to merge layers
+- [x] Convert to base64 data URL
+- [x] Handle empty canvas detection
+- [x] Add error handling for capture failures
+
+**Testing:**
+- [x] Canvas capture combines both layers correctly
+- [x] Empty canvas detection works
+- [x] Error handling for capture failures
+- [x] Image quality is acceptable
+
+**Acceptance Criteria:**
+- ✅ Canvas image captures both layers
+- ✅ Image format is base64 data URL
+- ✅ Empty canvas is detected
+- ✅ Error handling robust
+
+---
+
+### P2.3 Integration with Conversation Flow
+**Priority:** P1 (Important)  
+**Estimated Time:** 1.5 hours  
+**Dependencies:** P2.2
+
+**Tasks:**
+- [x] Create `onEvaluate` callback prop in Whiteboard component
+- [x] Create `handleWhiteboardEvaluate` in App.tsx
+- [x] Integrate with existing `handleSendMessage` flow
+- [x] Add context message for whiteboard evaluation
+- [x] Reuse existing image processing logic
+- [x] Pass image data to conversation flow
+
+**Testing:**
+- [x] Evaluate button triggers callback
+- [x] Image sent to Vision API correctly
+- [x] Message appears in conversation
+- [x] AI receives and processes drawing
+
+**Acceptance Criteria:**
+- ✅ Evaluation integrates with conversation
+- ✅ Image sent to Vision API
+- ✅ User message appears in chat
+- ✅ AI provides feedback on drawing
+
+---
+
+### P2.4 API Enhancement for Whiteboard Evaluation
+**Priority:** P1 (Important)  
+**Estimated Time:** 30 minutes  
+**Dependencies:** P2.3
+
+**Tasks:**
+- [x] Update `extractTextFromImage` to accept evaluation mode
+- [x] Update API endpoint to handle evaluation mode
+- [x] Create enhanced prompt for whiteboard analysis
+- [x] Increase max_tokens for evaluation responses
+- [x] Update frontend to pass evaluation flag
+
+**Testing:**
+- [x] Evaluation mode triggers different prompt
+- [x] API returns detailed analysis
+- [x] Prompt tailored for whiteboard drawings
+- [x] Token limit appropriate for evaluation
+
+**Acceptance Criteria:**
+- ✅ API handles evaluation mode
+- ✅ Enhanced prompt for whiteboard analysis
+- ✅ Detailed feedback provided
+- ✅ Works with existing image extraction
+
+---
+
+### P2.5 Error Handling & UX Polish
+**Priority:** P1 (Important)  
+**Estimated Time:** 30 minutes  
+**Dependencies:** P2.3
+
+**Tasks:**
+- [x] Disable Evaluate button when canvas is empty
+- [x] Show loading spinner during evaluation
+- [x] Handle API errors gracefully
+- [x] Add user-friendly error messages
+- [x] Prevent multiple simultaneous evaluations
+
+**Testing:**
+- [x] Empty canvas disables button
+- [x] Loading states work correctly
+- [x] Error messages are helpful
+- [x] No duplicate evaluations
+
+**Acceptance Criteria:**
+- ✅ Button disabled when appropriate
+- ✅ Clear loading feedback
+- ✅ Helpful error messages
+- ✅ No duplicate API calls
+
+---
+
+### P2.6 Documentation Updates
+**Priority:** P1 (Important)  
+**Estimated Time:** 1 hour  
+**Dependencies:** P2.5 complete
+
+**Tasks:**
+- [x] Update PRD with Phase 2 whiteboard evaluation
+- [x] Add Phase 2 tasks to tasks.md
+- [x] Update progress.md with Phase 2 status
+- [x] Update activeContext.md with Phase 2 work
+- [x] Document whiteboard evaluation pattern in systemPatterns.md
+
+**Testing:**
+- [x] Documentation is accurate
+- [x] All features documented
+- [x] Memory bank updated
+
+**Acceptance Criteria:**
+- ✅ PRD updated with Phase 2
+- ✅ Tasks.md includes Phase 2 tasks
+- ✅ Memory bank reflects current state
+- ✅ Documentation complete
+
+---
+
+## Phase 2 Summary
+
+**Status:** ✅ Complete  
+**Total Time:** ~5 hours  
+**Features Added:**
+- Evaluate button in whiteboard toolbar
+- Canvas capture (combines grid + drawing)
+- Integration with conversation flow
+- Enhanced API prompts for whiteboard analysis
+- Error handling and UX polish
+
+**Testing Status:**
+- ✅ Manual testing complete
+- ✅ Integration tested
+- ✅ Error scenarios handled
+
+**Next Steps:**
+- User testing and feedback
+- Potential enhancements based on usage
+
+---
+
 ### 8.2 Step Visualization (Optional)
 **Priority:** P2  
 **Estimated Time:** 4-8 hours  

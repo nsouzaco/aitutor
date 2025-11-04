@@ -505,6 +505,17 @@ FLOW:
 - Draw over uploaded images
 - Save/export whiteboard state
 
+#### 5.1 Whiteboard Evaluation (Phase 2)
+**Priority:** P1  
+**Effort:** 5 hours
+
+- "Evaluate" button in whiteboard toolbar
+- Captures canvas drawing (combines grid + drawing layers)
+- Sends drawing to LLM via Vision API for analysis
+- AI provides Socratic feedback on student work
+- Integrates seamlessly with conversation flow
+- Enables students to share visual work for feedback
+
 #### 6. Step Visualization
 **Priority:** P1  
 **Effort:** 1 day
