@@ -48,7 +48,7 @@ export default async function handler(req, res) {
 
     // Different prompts for evaluation mode (whiteboard) vs extraction mode (uploaded images)
     const promptText = evaluationMode
-      ? 'Analyze this student\'s work on the whiteboard. Describe what you see: any mathematical equations, diagrams, problem-solving steps, or work shown. Use LaTeX notation for all mathematical expressions. Use $ for inline math (like $x^2$) and $$ for block/display math (like $$\\frac{a}{b}$$). Be detailed about what the student has drawn or written, including any partial solutions or work shown.'
+      ? 'Extract and transcribe ONLY the mathematical content from this whiteboard image. Return just the equations, expressions, or work shown - nothing else. Use LaTeX notation: $ for inline math (like $x^2$) and $$ for block/display math (like $$\\frac{a}{b}$$). If there are multiple steps or equations, list them in order with line breaks. Do not add any analysis, commentary, or explanations - just the mathematical content itself.'
       : 'Extract the math problem from this image. Return ONLY the math equation or problem. Use LaTeX notation for all mathematical expressions. Use $ for inline math (like $x^2$) and $$ for block/display math (like $$\\frac{a}{b}$$). Transcribe handwritten or printed math accurately. If multiple equations, separate with line breaks.';
 
     // Call OpenAI Vision API
@@ -75,7 +75,7 @@ export default async function handler(req, res) {
           ],
         },
       ],
-      max_tokens: evaluationMode ? 500 : 300,
+      max_tokens: evaluationMode ? 200 : 300,
     });
 
     console.log('✅ [extract-image] OpenAI API call successful');
