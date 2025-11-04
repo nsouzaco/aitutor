@@ -15,6 +15,7 @@ interface DrawingAction {
 
 export default function Whiteboard() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const gridCanvasRef = useRef<HTMLCanvasElement>(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [currentTool, setCurrentTool] = useState<'pen' | 'eraser'>('pen')
   const [currentColor, setCurrentColor] = useState('#000000')
@@ -22,25 +23,38 @@ export default function Whiteboard() {
   const [history, setHistory] = useState<DrawingAction[]>([])
   const [currentAction, setCurrentAction] = useState<Point[]>([])
 
-  // Initialize canvas
+  // Initialize canvases
   useEffect(() => {
     const canvas = canvasRef.current
-    if (!canvas) return
+    const gridCanvas = gridCanvasRef.current
+    if (!canvas || !gridCanvas) return
 
     const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    const gridCtx = gridCanvas.getContext('2d')
+    if (!ctx || !gridCtx) return
 
-    // Set canvas size
+    // Set canvas sizes
     const resizeCanvas = () => {
       const rect = canvas.getBoundingClientRect()
+      
+      // Set both canvases to same size
       canvas.width = rect.width
       canvas.height = rect.height
+      gridCanvas.width = rect.width
+      gridCanvas.height = rect.height
       
-      // Fill with white background
-      ctx.fillStyle = '#ffffff'
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      // Fill grid canvas with white background
+      gridCtx.fillStyle = '#ffffff'
+      gridCtx.fillRect(0, 0, gridCanvas.width, gridCanvas.height)
       
-      // Redraw history
+      // Draw grid on background canvas (once, never redrawn)
+      drawGrid(gridCtx, gridCanvas.width, gridCanvas.height)
+      
+      // Drawing canvas should have transparent background (no fill)
+      // Clear the drawing canvas to make it transparent
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      
+      // Redraw drawing history
       redrawCanvas()
     }
 
@@ -83,14 +97,10 @@ export default function Whiteboard() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // Clear and fill with white
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    // Clear drawing canvas (transparent background)
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    // Draw grid
-    drawGrid(ctx, canvas.width, canvas.height)
-
-    // Redraw all actions
+    // Redraw all actions (grid is on separate background canvas)
     history.forEach(action => {
       ctx.strokeStyle = action.color
       ctx.lineWidth = action.width
@@ -225,11 +235,8 @@ export default function Whiteboard() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-    
-    // Redraw grid after clearing
-    drawGrid(ctx, canvas.width, canvas.height)
+    // Clear drawing canvas (transparent background, grid is on separate background canvas)
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
   }
 
   const handleDownload = () => {
@@ -241,15 +248,6 @@ export default function Whiteboard() {
     link.href = canvas.toDataURL()
     link.click()
   }
-
-  const colors = [
-    '#000000', // Black
-    '#DC2626', // Red (muted)
-    '#2563EB', // Blue (muted)
-    '#059669', // Green (muted)
-    '#F59E0B', // Orange (muted)
-    '#7C3AED', // Purple (muted)
-  ]
 
   return (
     <div className="flex h-full flex-col bg-gray-50">
@@ -270,53 +268,50 @@ export default function Whiteboard() {
       <div className="border-b border-gray-200 bg-white px-4 py-3">
         <div className="flex flex-wrap items-center gap-4">
           {/* Drawing Tools */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setCurrentTool('pen')}
-              className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-colors cursor-pointer border-2 shrink-0 ${
                 currentTool === 'pen'
-                  ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-gray-200 text-gray-700 hover:bg-gray-300 border-gray-400'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-transparent'
               }`}
               title="Pen"
             >
-              <Pencil size={16} />
-              <span className="hidden sm:inline">Pen</span>
+              <Pencil size={16} className="shrink-0" />
+              <span className="inline">Pen</span>
             </button>
             <button
               onClick={() => setCurrentTool('eraser')}
-              className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-colors cursor-pointer border-2 shrink-0 ${
                 currentTool === 'eraser'
-                  ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-gray-200 text-gray-700 hover:bg-gray-300 border-gray-400'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-transparent'
               }`}
               title="Eraser"
             >
-              <Eraser size={16} />
-              <span className="hidden sm:inline">Eraser</span>
+              <Eraser size={16} className="shrink-0" />
+              <span className="inline">Eraser</span>
             </button>
           </div>
 
-          {/* Color Picker */}
-          {currentTool === 'pen' && (
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">
-                Color:
-              </label>
-              <input
-                type="color"
-                value={currentColor}
-                onChange={(e) => setCurrentColor(e.target.value)}
-                className="h-10 w-10 cursor-pointer rounded-full border border-gray-300 p-1 transition-all hover:border-gray-400"
-                style={{
-                  appearance: 'none',
-                  WebkitAppearance: 'none',
-                  WebkitColorSwatchWrapper: 'content-box',
-                }}
-                title="Pick a color"
-              />
-            </div>
-          )}
+          {/* Color Picker - Always visible */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">
+              Color:
+            </label>
+            <input
+              type="color"
+              value={currentColor}
+              onChange={(e) => setCurrentColor(e.target.value)}
+              className="h-10 w-10 cursor-pointer rounded-full border border-gray-300 p-1 transition-all hover:border-gray-400"
+              style={{
+                appearance: 'none',
+                WebkitAppearance: 'none',
+              }}
+              title="Pick a color"
+            />
+          </div>
 
           {/* Stroke Width Dropdown */}
           <div className="flex items-center gap-2">
@@ -372,8 +367,14 @@ export default function Whiteboard() {
         </div>
       </div>
 
-      {/* Canvas */}
+      {/* Canvas - Two layers: background grid + foreground drawings */}
       <div className="relative flex-1 overflow-hidden">
+        {/* Background Grid Canvas */}
+        <canvas
+          ref={gridCanvasRef}
+          className="absolute inset-0 h-full w-full pointer-events-none"
+        />
+        {/* Foreground Drawing Canvas */}
         <canvas
           ref={canvasRef}
           onMouseDown={startDrawing}
