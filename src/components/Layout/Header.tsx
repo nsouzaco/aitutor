@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BookOpen, User } from 'lucide-react'
+import { BookOpen, User, History } from 'lucide-react'
 import { useAuth } from '../../contexts'
 import { signOut } from '../../services/authService'
 import { ConversationHistory } from '../History'
@@ -9,7 +9,7 @@ interface HeaderProps {
   onLoadConversation?: (conversationId: string) => void
 }
 
-export default function Header({ onLoadConversation }: HeaderProps) {
+export default function Header({ onNewProblem, onLoadConversation }: HeaderProps) {
   const { user } = useAuth()
   const [showHistory, setShowHistory] = useState(false)
 
@@ -50,12 +50,38 @@ export default function Header({ onLoadConversation }: HeaderProps) {
           {/* User Menu - Right Side */}
           {user && (
             <div className="flex items-center gap-2">
+              {/* History Button */}
+              <button
+                onClick={() => setShowHistory(true)}
+                className="flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
+                aria-label="View conversation history"
+                title="View conversation history"
+              >
+                <History size={16} />
+                <span className="hidden sm:inline">History</span>
+              </button>
+
+              {/* New Problem Button */}
+              {onNewProblem && (
+                <button
+                  onClick={onNewProblem}
+                  className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+                  aria-label="Start new problem"
+                  title="Start new problem"
+                >
+                  New Problem
+                </button>
+              )}
+
+              {/* User Info */}
               <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700">
                 <User size={14} />
                 <span className="font-medium max-w-[120px] truncate">
                   {user.displayName || user.email}
                 </span>
               </div>
+
+              {/* Sign Out Button */}
               <button
                 onClick={handleSignOut}
                 className="rounded-full bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
