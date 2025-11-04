@@ -9,22 +9,35 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap');
+        
+        @keyframes gentle-bounce {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
+        
+        .animate-gentle-bounce {
+          animation: gentle-bounce 2s ease-in-out infinite;
+        }
       `}</style>
 
       <section className="bg-[url('https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/hero/gridBackground.png')] min-h-screen w-full bg-no-repeat bg-cover bg-center flex flex-col items-center justify-center px-4">
         {/* Logo - Overlapping layout */}
-        <div className="relative flex flex-col items-center -mt-20 mb-4">
-          {/* 3D Model - behind the text */}
-          <div className="relative z-0">
-            <SparkieIcon3D />
-          </div>
-          {/* Text - in front, overlapping the bottom of the 3D model */}
+        <div className="relative mb-4 inline-block">
+          {/* Text - in front */}
           <h1 
-            className="text-6xl md:text-8xl text-gray-900 relative z-10 -mt-30 md:-mt-20"
+            className="text-6xl md:text-8xl text-gray-900 relative z-10"
             style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 600 }}
           >
             Sparkie
           </h1>
+          {/* 3D Model - positioned top-right of the text */}
+          <span className="absolute top-0 right-0 -translate-y-[50%] translate-x-1/2 z-0 animate-gentle-bounce">
+            <SparkieIcon3D />
+          </span>
         </div>
 
         {/* Description */}

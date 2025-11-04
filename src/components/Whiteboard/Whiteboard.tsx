@@ -253,6 +253,19 @@ export default function Whiteboard() {
 
   return (
     <div className="flex h-full flex-col bg-gray-50">
+      <style>{`
+        input[type='color']::-webkit-color-swatch-wrapper {
+          padding: 2px;
+          border-radius: 9999px;
+        }
+        input[type='color']::-webkit-color-swatch {
+          border: none;
+          border-radius: 9999px;
+        }
+        input[type='color'] {
+          box-sizing: border-box;
+        }
+      `}</style>
       {/* Toolbar */}
       <div className="border-b border-gray-200 bg-white px-4 py-3">
         <div className="flex flex-wrap items-center gap-4">
@@ -260,7 +273,7 @@ export default function Whiteboard() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setCurrentTool('pen')}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-colors ${
                 currentTool === 'pen'
                   ? 'bg-primary text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -272,7 +285,7 @@ export default function Whiteboard() {
             </button>
             <button
               onClick={() => setCurrentTool('eraser')}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-colors ${
                 currentTool === 'eraser'
                   ? 'bg-primary text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -287,19 +300,21 @@ export default function Whiteboard() {
           {/* Color Picker */}
           {currentTool === 'pen' && (
             <div className="flex items-center gap-2">
-              {colors.map(color => (
-                <button
-                  key={color}
-                  onClick={() => setCurrentColor(color)}
-                  className={`h-8 w-8 rounded-full border-2 transition-all ${
-                    currentColor === color
-                      ? 'border-gray-900 scale-110'
-                      : 'border-gray-300 hover:scale-105'
-                  }`}
-                  style={{ backgroundColor: color }}
-                  title={color}
-                />
-              ))}
+              <label className="text-sm font-medium text-gray-700">
+                Color:
+              </label>
+              <input
+                type="color"
+                value={currentColor}
+                onChange={(e) => setCurrentColor(e.target.value)}
+                className="h-10 w-10 cursor-pointer rounded-full border border-gray-300 p-1 transition-all hover:border-gray-400"
+                style={{
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  WebkitColorSwatchWrapper: 'content-box',
+                }}
+                title="Pick a color"
+              />
             </div>
           )}
 
@@ -314,7 +329,7 @@ export default function Whiteboard() {
                 setStrokeWidth(Number(e.target.value))
                 e.target.blur() // Remove focus after selection
               }}
-              className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:border-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:border-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
               <option value="1">1px - Very Thin</option>
               <option value="2">2px - Thin</option>
@@ -331,7 +346,7 @@ export default function Whiteboard() {
             <button
               onClick={handleUndo}
               disabled={history.length === 0}
-              className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
               title="Undo"
             >
               <Undo size={16} />
@@ -339,7 +354,7 @@ export default function Whiteboard() {
             </button>
             <button
               onClick={handleClear}
-              className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200"
+              className="flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200"
               title="Clear"
             >
               <Trash2 size={16} />
@@ -347,7 +362,7 @@ export default function Whiteboard() {
             </button>
             <button
               onClick={handleDownload}
-              className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200"
+              className="flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200"
               title="Download"
             >
               <Download size={16} />

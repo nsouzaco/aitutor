@@ -134,7 +134,7 @@ export default function InputArea({
 
   return (
     <div className="sticky bottom-0 border-t border-gray-200 bg-white shadow-lg">
-      <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6">
+      <div className="mx-auto w-full max-w-6xl px-4 py-4 sm:px-6">
         {/* Image Preview */}
         {selectedImage && (
           <div className="mb-3">
@@ -142,65 +142,59 @@ export default function InputArea({
           </div>
         )}
 
-        <div className="flex items-end gap-2">
-          {/* Image Upload Button */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageSelect}
-            className="hidden"
-            aria-label="Upload image file"
-          />
-          <button
-            onClick={handleImageClick}
-            disabled={disabled || !!selectedImage}
-            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="Upload image"
-            title="Upload a photo of your math problem"
-          >
-            <ImagePlus size={20} />
-          </button>
-
-          {/* Textarea - wider to fill space */}
-          <div className="flex flex-1 items-end gap-2">
-            <textarea
-              ref={textareaRef}
-              value={input}
-              onChange={handleInput}
-              onKeyDown={handleKeyDown}
-              disabled={disabled}
-              placeholder={placeholder}
-              rows={1}
-              className="flex-1 resize-none rounded-lg border border-gray-300 px-4 py-2.5 text-base text-gray-900 placeholder-gray-500 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:bg-gray-50 disabled:cursor-not-allowed"
-              style={{ maxHeight: '200px' }}
-              aria-label="Message input"
+        <div className="flex items-end justify-center w-full">
+          <div className="flex w-full max-w-3xl items-end gap-2">
+            {/* Image Upload Button - Fixed Size */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelect}
+              className="hidden"
+              aria-label="Upload image file"
             />
-
-            {/* Mic Button */}
             <button
-              onClick={handleMicClick}
-              disabled={disabled}
-              className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                isListening
-                  ? 'border-red-500 bg-red-500 text-white animate-pulse'
-                  : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
-              }`}
-              aria-label="Voice input"
-              title={isListening ? 'Listening... Click to stop' : 'Click to speak'}
+              onClick={handleImageClick}
+              disabled={disabled || !!selectedImage}
+              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Upload image"
+              title="Upload a photo of your math problem"
             >
-              <Mic size={20} />
+              <ImagePlus size={20} />
             </button>
 
-            {/* Send Button */}
-            <button
-              onClick={handleSend}
-              disabled={disabled || (!input.trim() && !selectedImage)}
-              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-white transition-all hover:bg-primary-dark hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none active:scale-95"
-              aria-label="Send message"
-            >
-              <Send size={18} />
-            </button>
+            {/* INPUT GROUP - Expands with flex-1 */}
+            <div className="flex flex-1 items-end gap-2">
+              <textarea
+                ref={textareaRef}
+                value={input}
+                onChange={handleInput}
+                onKeyDown={handleKeyDown}
+                disabled={disabled}
+                placeholder={placeholder}
+                rows={1}
+                className="flex-1 resize-none rounded-full border border-gray-300 px-4 py-2.5 text-base text-gray-900 placeholder-gray-500 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:bg-gray-50 disabled:cursor-not-allowed"
+                style={{ maxHeight: '200px' }}
+                aria-label="Message input"
+              />
+
+              {/* Mic Button - Fixed Size */}
+              <button
+                onClick={handleMicClick}
+                disabled={disabled}
+                className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isListening
+                    ? 'border-red-500 bg-red-500 text-white animate-pulse'
+                    : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+                aria-label="Voice input"
+                title={isListening ? 'Listening... Click to stop' : 'Click to speak'}
+              >
+                <Mic size={20} />
+              </button>
+
+
+            </div>
           </div>
         </div>
       </div>
