@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BookOpen, User, History } from 'lucide-react'
+import { BookOpen, User } from 'lucide-react'
 import { useAuth } from '../../contexts'
 import { signOut } from '../../services/authService'
 import { ConversationHistory } from '../History'
@@ -9,7 +9,7 @@ interface HeaderProps {
   onLoadConversation?: (conversationId: string) => void
 }
 
-export default function Header({ onNewProblem, onLoadConversation }: HeaderProps) {
+export default function Header({ onLoadConversation }: HeaderProps) {
   const { user } = useAuth()
   const [showHistory, setShowHistory] = useState(false)
 
