@@ -87,12 +87,19 @@ function App() {
       try {
         // Extract base64 data from data URL
         const base64Data = imageUrl.split(',')[1]
-        const extractedText = await extractTextFromImage(base64Data)
+        // Check if this is a whiteboard evaluation (contains whiteboard context)
+        const isWhiteboardEvaluation = content.toLowerCase().includes('here is my work') || content.toLowerCase().includes('what do you think')
+        const extractedText = await extractTextFromImage(base64Data, isWhiteboardEvaluation)
         
         // Combine extracted text with user's message
-        messageContent = content
-          ? `${content}\n\nExtracted from image: ${extractedText}`
-          : `Problem from image: ${extractedText}`
+        // For whiteboard evaluation, format more naturally
+        if (content.toLowerCase().includes('here is my work') || content.toLowerCase().includes('what do you think')) {
+          messageContent = `${content}\n\n${extractedText}`
+        } else {
+          messageContent = content
+            ? `${content}\n\nExtracted from image: ${extractedText}`
+            : `Problem from image: ${extractedText}`
+        }
         
         // Add user message with image
         addMessage(messageContent, 'user', 'text', imageUrl)
@@ -122,7 +129,12 @@ function App() {
     setStatus('thinking')
 
     try {
-      // Build conversation context with current stuck count
+      // Check if this is a whiteboard evaluation (contains whiteboard context)
+      const isWhiteboardEval = content.toLowerCase().includes('here is my work') || 
+                               content.toLowerCase().includes('what do you think') ||
+                               (!!imageUrl && content.toLowerCase().includes('evaluate'))
+      
+      // Build conversation context with current stuck count and whiteboard evaluation flag
       const messages = buildConversationContext(
         [...conversation.messages, {
           id: 'temp',
@@ -130,7 +142,8 @@ function App() {
           content: messageContent,
           timestamp: new Date(),
         }],
-        conversation.stuckCount
+        conversation.stuckCount,
+        isWhiteboardEval
       )
 
       // Get response from OpenAI
@@ -160,7 +173,7 @@ function App() {
   const isThinking = conversation.status === 'thinking'
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className="flex h-screen flex-col bg-white">
       <Header 
         onNewProblem={hasMessages ? handleNewProblem : undefined}
         onLoadConversation={handleLoadConversation}
@@ -169,9 +182,9 @@ function App() {
       {/* Split Screen Layout: Chat (35%) + Whiteboard (65%) */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Side: Chat Interface (35%) */}
-        <div className="flex w-full lg:w-[35%] flex-col border-r border-gray-200 relative">
-          {/* Scrollable Content Area */}
-          <div className="flex-1 overflow-y-auto">
+        <div className="flex w-[35%] flex-col border-r border-gray-200">
+          {/* Scrollable Content Area - Fixed height with scroll */}
+          <div className="flex-1 overflow-y-auto min-h-0">
             {!hasMessages ? (
               <EmptyState />
             ) : (
@@ -186,16 +199,18 @@ function App() {
             )}
           </div>
 
-          {/* Fixed Input Area */}
-          <InputArea
-            onSend={handleSendMessage}
-            disabled={isThinking}
-            placeholder="Type your math problem or answer..."
-          />
+          {/* Fixed Input Area - Always visible at bottom */}
+          <div className="flex-shrink-0">
+            <InputArea
+              onSend={handleSendMessage}
+              disabled={isThinking}
+              placeholder="Type your math problem or answer..."
+            />
+          </div>
         </div>
 
         {/* Right Side: Whiteboard (65%) */}
-        <div className="hidden lg:flex lg:w-[65%] flex-col">
+        <div className="flex w-[65%] flex-col">
           <Whiteboard />
         </div>
       </div>

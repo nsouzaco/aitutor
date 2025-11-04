@@ -15,61 +15,87 @@ interface DrawingAction {
 
 export default function Whiteboard() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const gridCanvasRef = useRef<HTMLCanvasElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [currentTool, setCurrentTool] = useState<'pen' | 'eraser'>('pen')
   const [currentColor, setCurrentColor] = useState('#000000')
   const [strokeWidth, setStrokeWidth] = useState(2)
   const [history, setHistory] = useState<DrawingAction[]>([])
   const [currentAction, setCurrentAction] = useState<Point[]>([])
+  const [canvasReady, setCanvasReady] = useState(false)
 
-  // Initialize canvases
+  // Initialize canvas on mount
   useEffect(() => {
+    console.log('🎨 [Whiteboard] Initializing canvas...')
+    
     const canvas = canvasRef.current
-    const gridCanvas = gridCanvasRef.current
-    if (!canvas || !gridCanvas) return
-
-    const ctx = canvas.getContext('2d')
-    const gridCtx = gridCanvas.getContext('2d')
-    if (!ctx || !gridCtx) return
-
-    // Set canvas sizes
-    const resizeCanvas = () => {
-      const rect = canvas.getBoundingClientRect()
-      
-      // Set both canvases to same size
-      canvas.width = rect.width
-      canvas.height = rect.height
-      gridCanvas.width = rect.width
-      gridCanvas.height = rect.height
-      
-      // Fill grid canvas with white background
-      gridCtx.fillStyle = '#ffffff'
-      gridCtx.fillRect(0, 0, gridCanvas.width, gridCanvas.height)
-      
-      // Draw grid on background canvas (once, never redrawn)
-      drawGrid(gridCtx, gridCanvas.width, gridCanvas.height)
-      
-      // Drawing canvas should have transparent background (no fill)
-      // Clear the drawing canvas to make it transparent
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      
-      // Redraw drawing history
-      redrawCanvas()
+    const container = containerRef.current
+    
+    if (!canvas || !container) {
+      console.error('❌ [Whiteboard] Canvas or container ref is null!')
+      return
     }
 
-    resizeCanvas()
-    window.addEventListener('resize', resizeCanvas)
+    const initializeCanvas = () => {
+      const rect = container.getBoundingClientRect()
+      console.log('📐 [Whiteboard] Container rect:', { width: rect.width, height: rect.height })
 
-    return () => window.removeEventListener('resize', resizeCanvas)
+      if (rect.width === 0 || rect.height === 0) {
+        console.warn('⚠️ [Whiteboard] Container has zero dimensions, retrying in 100ms...')
+        setTimeout(initializeCanvas, 100)
+        return
+      }
+
+      const width = Math.floor(rect.width)
+      const height = Math.floor(rect.height)
+
+      console.log('✅ [Whiteboard] Setting canvas size:', { width, height })
+      
+      canvas.width = width
+      canvas.height = height
+      canvas.style.width = `${width}px`
+      canvas.style.height = `${height}px`
+
+      const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        console.error('❌ [Whiteboard] Failed to get 2D context!')
+        return
+      }
+
+      // Fill with white background
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, width, height)
+
+      // Draw grid
+      drawGrid(ctx, width, height)
+
+      setCanvasReady(true)
+      console.log('✅ [Whiteboard] Canvas ready!')
+    }
+
+    // Use requestAnimationFrame to ensure DOM is ready
+    const rafId = requestAnimationFrame(initializeCanvas)
+
+    // Handle window resize
+    const handleResize = () => {
+      initializeCanvas()
+    }
+
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      cancelAnimationFrame(rafId)
+      window.removeEventListener('resize', handleResize)
+    }
   }, [])
 
   // Draw grid on canvas
   const drawGrid = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     const gridSize = 25 // Grid spacing in pixels
     
-    ctx.strokeStyle = '#e5e7eb' // Very light gray (Tailwind gray-200)
-    ctx.lineWidth = 0.5
+    ctx.save()
+    ctx.strokeStyle = '#e5e7eb' // Light gray
+    ctx.lineWidth = 1
     ctx.globalCompositeOperation = 'source-over'
 
     // Draw vertical lines
@@ -87,6 +113,8 @@ export default function Whiteboard() {
       ctx.lineTo(width, y)
       ctx.stroke()
     }
+    
+    ctx.restore()
   }
 
   // Redraw canvas from history
@@ -97,11 +125,15 @@ export default function Whiteboard() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // Clear drawing canvas (transparent background)
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    // Clear and fill with white
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    // Redraw all actions (grid is on separate background canvas)
-    history.forEach(action => {
+    // Draw grid first (behind everything)
+    drawGrid(ctx, canvas.width, canvas.height)
+
+    // Redraw all actions
+    history.forEach((action) => {
       ctx.strokeStyle = action.color
       ctx.lineWidth = action.width
       ctx.lineCap = 'round'
@@ -114,8 +146,8 @@ export default function Whiteboard() {
       }
 
       ctx.beginPath()
-      action.points.forEach((point, index) => {
-        if (index === 0) {
+      action.points.forEach((point, idx) => {
+        if (idx === 0) {
           ctx.moveTo(point.x, point.y)
         } else {
           ctx.lineTo(point.x, point.y)
@@ -128,9 +160,12 @@ export default function Whiteboard() {
     ctx.globalCompositeOperation = 'source-over'
   }
 
+  // Redraw when history changes
   useEffect(() => {
-    redrawCanvas()
-  }, [history])
+    if (canvasReady) {
+      redrawCanvas()
+    }
+  }, [history, canvasReady])
 
   const getCoordinates = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>): Point => {
     const canvas = canvasRef.current
@@ -228,6 +263,7 @@ export default function Whiteboard() {
   }
 
   const handleClear = () => {
+    console.log('🗑️ [Whiteboard] Clearing canvas')
     setHistory([])
     const canvas = canvasRef.current
     if (!canvas) return
@@ -235,8 +271,11 @@ export default function Whiteboard() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // Clear drawing canvas (transparent background, grid is on separate background canvas)
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    
+    // Redraw grid after clearing
+    drawGrid(ctx, canvas.width, canvas.height)
   }
 
   const handleDownload = () => {
@@ -250,7 +289,7 @@ export default function Whiteboard() {
   }
 
   return (
-    <div className="flex h-full flex-col bg-gray-50">
+    <div className="flex h-full w-full flex-col bg-gray-50" style={{ height: '100%' }}>
       <style>{`
         input[type='color']::-webkit-color-swatch-wrapper {
           padding: 2px;
@@ -264,8 +303,9 @@ export default function Whiteboard() {
           box-sizing: border-box;
         }
       `}</style>
+      
       {/* Toolbar */}
-      <div className="border-b border-gray-200 bg-white px-4 py-3">
+      <div className="flex-shrink-0 border-b border-gray-200 bg-white px-4 py-3">
         <div className="flex flex-wrap items-center gap-4">
           {/* Drawing Tools */}
           <div className="flex items-center gap-2 shrink-0">
@@ -295,7 +335,7 @@ export default function Whiteboard() {
             </button>
           </div>
 
-          {/* Color Picker - Always visible */}
+          {/* Color Picker */}
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-gray-700">
               Color:
@@ -322,7 +362,7 @@ export default function Whiteboard() {
               value={strokeWidth}
               onChange={(e) => {
                 setStrokeWidth(Number(e.target.value))
-                e.target.blur() // Remove focus after selection
+                e.target.blur()
               }}
               className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:border-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
@@ -367,14 +407,12 @@ export default function Whiteboard() {
         </div>
       </div>
 
-      {/* Canvas - Two layers: background grid + foreground drawings */}
-      <div className="relative flex-1 overflow-hidden">
-        {/* Background Grid Canvas */}
-        <canvas
-          ref={gridCanvasRef}
-          className="absolute inset-0 h-full w-full pointer-events-none"
-        />
-        {/* Foreground Drawing Canvas */}
+      {/* Canvas Container */}
+      <div 
+        ref={containerRef}
+        className="relative flex-1 bg-white"
+        style={{ minHeight: 0, flex: 1 }}
+      >
         <canvas
           ref={canvasRef}
           onMouseDown={startDrawing}
@@ -385,10 +423,17 @@ export default function Whiteboard() {
           onTouchMove={draw}
           onTouchEnd={stopDrawing}
           className="absolute inset-0 h-full w-full cursor-crosshair touch-none"
-          style={{ touchAction: 'none' }}
+          style={{ 
+            touchAction: 'none',
+            display: 'block'
+          }}
         />
+        {!canvasReady && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white">
+            <p className="text-gray-500">Initializing canvas...</p>
+          </div>
+        )}
       </div>
     </div>
   )
 }
-
