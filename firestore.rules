@@ -41,6 +41,27 @@ service cloud.firestore {
       allow write: if isOwner(userId);
     }
 
+    // Phase 2: Student profiles and progress tracking
+    match /students/{userId} {
+      // Users can read and write their own student profile
+      allow read, write: if isOwner(userId);
+      
+      // Subcollection: Progress tracking
+      match /progress/{subtopicId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      // Subcollection: Attempt history
+      match /attempts/{attemptId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      // Subcollection: Review schedule
+      match /reviews/{reviewId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
     // Deny all other access by default
     match /{document=**} {
       allow read, write: if false;
