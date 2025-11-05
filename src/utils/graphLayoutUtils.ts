@@ -60,18 +60,22 @@ export function getNodeColor(status: SubtopicStatus): {
 export function convertCurriculumToReactFlow(
   userProgress?: StudentProgress
 ): { nodes: Node[]; edges: Edge[] } {
+  console.log('🎨 [GraphLayout] Converting curriculum to React Flow')
   const nodes: Node[] = []
   const edges: Edge[] = []
   
   const allSubtopics = getAllSubtopics()
+  console.log('📚 [GraphLayout] Total subtopics:', allSubtopics.length)
   const masteredSubtopics = userProgress
     ? Object.keys(userProgress.subtopics).filter(
         id => userProgress.subtopics[id].mastered
       )
     : []
+  console.log('✅ [GraphLayout] Mastered subtopics:', masteredSubtopics.length)
 
   // Calculate positions using hierarchical layout
   const positions = calculateHierarchicalLayout()
+  console.log('📍 [GraphLayout] Calculated positions for', Object.keys(positions).length, 'nodes')
 
   // Create nodes for each subtopic
   allSubtopics.forEach((subtopic, index) => {
@@ -139,6 +143,7 @@ export function convertCurriculumToReactFlow(
     })
   })
 
+  console.log('🎨 [GraphLayout] Created', nodes.length, 'nodes and', edges.length, 'edges')
   return { nodes, edges }
 }
 

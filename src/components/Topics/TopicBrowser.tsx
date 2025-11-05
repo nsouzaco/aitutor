@@ -43,11 +43,14 @@ export function TopicBrowser({ userId, onStartPractice }: TopicBrowserProps) {
   const loadTopics = async () => {
     try {
       setLoading(true)
+      console.log('🔍 [TopicBrowser] Loading topics for user:', userId)
       const [topicsWithStatus, progress] = await Promise.all([
         getAllSubtopicsWithStatus(userId),
         getStudentProgress(userId),
       ])
 
+      console.log('✅ [TopicBrowser] Topics loaded:', topicsWithStatus.length)
+      console.log('📊 [TopicBrowser] User progress:', progress)
       setTopics(topicsWithStatus)
       setUserProgress(progress)
 
@@ -59,8 +62,9 @@ export function TopicBrowser({ userId, onStartPractice }: TopicBrowserProps) {
         }
       }
       setLockedReasons(reasons)
+      console.log('🔒 [TopicBrowser] Locked reasons:', reasons)
     } catch (error) {
-      console.error('Error loading topics:', error)
+      console.error('❌ [TopicBrowser] Error loading topics:', error)
     } finally {
       setLoading(false)
     }

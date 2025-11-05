@@ -6,7 +6,9 @@ import { LandingPage } from './components/Landing'
 import { Whiteboard } from './components/Whiteboard'
 import { ProgressDashboard } from './components/Dashboard'
 import { TopicBrowser } from './components/Topics'
+import { XPFeedback } from './components/Practice'
 import { useConversation, useAuth } from './contexts'
+import { usePracticeSession } from './hooks'
 import { sendMessage, extractTextFromImage } from './services/vercelApiService'
 import { initializeStudentProfile } from './services/progressService'
 import {
@@ -14,6 +16,7 @@ import {
   detectStuckResponse,
   detectCelebration,
 } from './utils/promptBuilder'
+import { detectCorrectAnswer, detectIncorrectAnswer, isAskingQuestion } from './utils/answerDetection'
 
 type ViewMode = 'tutor' | 'dashboard' | 'topics'
 
@@ -21,6 +24,7 @@ function App() {
   const { user, loading: authLoading } = useAuth()
   const [showAuth, setShowAuth] = useState(false)
   const [currentView, setCurrentView] = useState<ViewMode>('tutor')
+  const [currentSubtopicId, setCurrentSubtopicId] = useState<string | null>(null)
   const {
     conversation,
     addMessage,
@@ -31,6 +35,8 @@ function App() {
     saveConversation,
     loadConversation,
   } = useConversation()
+  
+  const practiceSession = usePracticeSession(user?.uid || null)
 
   // Initialize student profile when user logs in
   useEffect(() => {
@@ -96,10 +102,11 @@ function App() {
   }
 
   const handleStartPractice = (subtopicId: string) => {
-    // TODO: In future, this will load the specific subtopic problem
-    console.log('Start practice for subtopic:', subtopicId)
+    console.log('🎯 [App] Start practice for subtopic:', subtopicId)
+    setCurrentSubtopicId(subtopicId)
     setCurrentView('tutor')
     clearConversation()
+    // Session will start when user sends first message
   }
 
   const handleWhiteboardEvaluate = async (imageDataUrl: string) => {
@@ -114,6 +121,12 @@ function App() {
 
   const handleSendMessage = async (content: string, imageUrl?: string) => {
     let messageContent = content
+    
+    // Start practice session if this is the first message and subtopic is selected
+    if (conversation.messages.length === 0 && currentSubtopicId && !practiceSession.isActive) {
+      console.log('🎯 [App] Starting practice session')
+      practiceSession.startSession(currentSubtopicId, content, imageUrl)
+    }
     
     // Show typing indicator early if processing image
     if (imageUrl) {
@@ -198,6 +211,28 @@ function App() {
 
       // Add AI response
       addMessage(response, 'assistant', isCelebration ? 'celebration' : undefined)
+
+      // Track hints (Socratic questions count as hints)
+      if (practiceSession.isActive && isAskingQuestion(response)) {
+        practiceSession.useHint()
+      }
+
+      // Detect if answer is correct or incorrect and record attempt
+      if (practiceSession.isActive) {
+        const isCorrect = detectCorrectAnswer(response)
+        const isIncorrect = detectIncorrectAnswer(response)
+        
+        if (isCorrect || isIncorrect) {
+          console.log(`${isCorrect ? '✅' : '❌'} [App] Answer detected as ${isCorrect ? 'correct' : 'incorrect'}`)
+          
+          // Record the attempt
+          await practiceSession.submitAttempt(
+            messageContent,
+            isCorrect,
+            conversation.messages
+          )
+        }
+      }
 
       setStatus('idle')
     } catch (error: any) {
@@ -287,6 +322,18 @@ function App() {
         onNavigate={handleNavigate}
       />
       {renderView()}
+      
+      {/* XP Feedback Modal */}
+      {practiceSession.lastAttemptResult && (
+        <XPFeedback
+          result={practiceSession.lastAttemptResult}
+          onClose={() => {
+            practiceSession.clearLastResult()
+            // Clear subtopic selection after completing a problem
+            setCurrentSubtopicId(null)
+          }}
+        />
+      )}
     </div>
   )
 }
