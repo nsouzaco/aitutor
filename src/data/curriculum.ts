@@ -521,8 +521,6 @@ export function validateCurriculum(): { valid: boolean; errors: string[] } {
   const subtopics = getAllSubtopics()
 
   subtopics.forEach(subtopic => {
-    const visited = new Set<string>()
-    
     function checkCircular(id: string, path: string[]): boolean {
       if (path.includes(id)) {
         errors.push(`Circular dependency detected: ${path.join(' → ')} → ${id}`)
