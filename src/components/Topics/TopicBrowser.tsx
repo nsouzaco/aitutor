@@ -2,7 +2,7 @@
  * TopicBrowser - Browse curriculum topics with list and graph views
  */
 
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { List, Network, Loader2, Filter } from 'lucide-react'
 import { KnowledgeGraph } from './KnowledgeGraph'
 import { TopicCard } from './TopicCard'

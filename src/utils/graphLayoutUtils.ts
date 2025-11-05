@@ -5,8 +5,8 @@
  * Provides auto-layout algorithms and styling based on mastery status
  */
 
-import { Node, Edge, Position } from 'reactflow'
-import { Subtopic, SubtopicStatus, Unit } from '../types/curriculum'
+import { Node, Edge, Position, MarkerType } from 'reactflow'
+import { Subtopic, SubtopicStatus } from '../types/curriculum'
 import { CURRICULUM, getAllSubtopics } from '../data/curriculum'
 import { StudentProgress } from '../types/progress'
 
@@ -136,7 +136,7 @@ export function convertCurriculumToReactFlow(
           strokeWidth: 2,
         },
         markerEnd: {
-          type: 'arrowclosed',
+          type: MarkerType.ArrowClosed,
           color: '#9ca3af',
         },
       })
@@ -153,12 +153,11 @@ export function convertCurriculumToReactFlow(
  */
 export function calculateHierarchicalLayout(): Record<string, { x: number; y: number }> {
   const positions: Record<string, { x: number; y: number }> = {}
-  const allSubtopics = getAllSubtopics()
 
   // Group by unit
   let currentUnitY = 0
 
-  CURRICULUM.units.forEach((unit, unitIndex) => {
+  CURRICULUM.units.forEach((unit) => {
     // Collect all subtopics in this unit
     const unitSubtopics: Subtopic[] = []
     unit.topics.forEach(topic => {
@@ -199,19 +198,11 @@ export function calculateHierarchicalLayout(): Record<string, { x: number; y: nu
  */
 function calculateSubtopicDepths(subtopics: Subtopic[]): Record<string, number> {
   const depths: Record<string, number> = {}
-  const visited = new Set<string>()
 
   function calculateDepth(subtopic: Subtopic): number {
     if (depths[subtopic.id] !== undefined) {
       return depths[subtopic.id]
     }
-
-    if (visited.has(subtopic.id)) {
-      // Circular dependency - shouldn't happen, but handle gracefully
-      return 0
-    }
-
-    visited.add(subtopic.id)
 
     if (subtopic.prerequisites.length === 0) {
       depths[subtopic.id] = 0
@@ -253,7 +244,7 @@ export function buildEdgesFromPrerequisites(subtopics: Subtopic[]): Edge[] {
           strokeWidth: 2,
         },
         markerEnd: {
-          type: 'arrowclosed',
+          type: MarkerType.ArrowClosed,
           color: '#9ca3af',
         },
       })

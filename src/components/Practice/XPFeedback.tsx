@@ -2,7 +2,7 @@
  * XPFeedback - Display XP earned and progress updates after solving problems
  */
 
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Star, TrendingUp, Unlock, CheckCircle, X } from 'lucide-react'
 import { AttemptResult } from '../../types/attempt'
 import { getSubtopicName } from '../../data/curriculum'

@@ -2,7 +2,6 @@
  * StatsHeader - Display XP, streaks, and pace
  */
 
-import React from 'react'
 import { TrendingUp, Flame, Star, Calendar } from 'lucide-react'
 
 interface StatsHeaderProps {

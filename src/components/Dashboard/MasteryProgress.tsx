@@ -2,7 +2,6 @@
  * MasteryProgress - Display mastery overview and topic list
  */
 
-import React from 'react'
 import { CheckCircle, Circle, Lock, PlayCircle } from 'lucide-react'
 
 interface MasteryProgressProps {

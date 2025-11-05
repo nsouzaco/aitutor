@@ -2,7 +2,6 @@
  * RecentActivity - Display recent attempts
  */
 
-import React from 'react'
 import { CheckCircle, XCircle, Clock, Star } from 'lucide-react'
 import { RecentActivity as RecentActivityType } from '../../types/attempt'
 

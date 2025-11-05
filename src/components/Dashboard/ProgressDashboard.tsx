@@ -3,7 +3,7 @@
  * Displays all progress, stats, and recommendations
  */
 
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { StatsHeader } from './StatsHeader'
 import { MasteryProgress } from './MasteryProgress'

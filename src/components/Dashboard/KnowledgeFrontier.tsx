@@ -2,7 +2,6 @@
  * KnowledgeFrontier - Recommend next best topic to study
  */
 
-import React from 'react'
 import { ArrowRight, TrendingUp, Clock, Target } from 'lucide-react'
 import { SubtopicWithProgress } from '../../types/curriculum'
 

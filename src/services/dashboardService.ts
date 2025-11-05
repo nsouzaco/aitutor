@@ -9,7 +9,7 @@
  * - Unit breakdown
  */
 
-import { doc, getDoc, collection, getDocs, query, where, Timestamp } from 'firebase/firestore'
+import { doc, getDoc, collection, getDocs } from 'firebase/firestore'
 import { db } from './firebaseService'
 import { StudentProfile } from '../types/progress'
 import { RecentActivity } from '../types/attempt'

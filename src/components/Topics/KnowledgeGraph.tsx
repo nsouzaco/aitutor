@@ -3,10 +3,9 @@
  * Shows prerequisite relationships and mastery status
  */
 
-import React, { useCallback, useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import ReactFlow, {
   Node,
-  Edge,
   Controls,
   MiniMap,
   Background,
@@ -32,8 +31,8 @@ export function KnowledgeGraph({ userProgress, onNodeClick }: KnowledgeGraphProp
     [userProgress]
   )
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
+  const [nodes, , onNodesChange] = useNodesState(initialNodes)
+  const [edges, , onEdgesChange] = useEdgesState(initialEdges)
 
   // Handle node click
   const handleNodeClick = useCallback(

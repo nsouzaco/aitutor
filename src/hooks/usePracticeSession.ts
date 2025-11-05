@@ -8,7 +8,7 @@
  * - Problem context
  */
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { recordAttempt } from '../services/attemptService'
 import { AttemptResult } from '../types/attempt'
 

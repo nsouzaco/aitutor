@@ -2,7 +2,6 @@
  * UnitBreakdown - Display progress per curriculum unit
  */
 
-import React from 'react'
 import { BookOpen, TrendingUp } from 'lucide-react'
 
 interface UnitProgress {

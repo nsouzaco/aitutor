@@ -2,7 +2,6 @@
  * TopicCard - Individual topic card with status and CTA
  */
 
-import React from 'react'
 import { CheckCircle, Circle, Lock, PlayCircle, ArrowRight, Clock } from 'lucide-react'
 import { SubtopicWithProgress } from '../../types/curriculum'
 

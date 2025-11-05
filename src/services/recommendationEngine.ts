@@ -8,8 +8,7 @@
  * 4. Filter out locked topics (prerequisites not met)
  */
 
-import { Subtopic, SubtopicWithProgress } from '../types/curriculum'
-import { getAllSubtopics } from '../data/curriculum'
+import { SubtopicWithProgress } from '../types/curriculum'
 import { getStudentProgress } from './progressService'
 import { getAvailableSubtopics } from './gatingService'
 
