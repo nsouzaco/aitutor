@@ -17,6 +17,7 @@ import {
   detectCelebration,
 } from './utils/promptBuilder'
 import { detectCorrectAnswer, detectIncorrectAnswer, isAskingQuestion } from './utils/answerDetection'
+import { generateProblemForSubtopic } from './utils/problemGenerator'
 
 type ViewMode = 'tutor' | 'dashboard' | 'topics'
 
@@ -101,12 +102,21 @@ function App() {
     setCurrentView(view)
   }
 
-  const handleStartPractice = (subtopicId: string) => {
+  const handleStartPractice = async (subtopicId: string) => {
     console.log('🎯 [App] Start practice for subtopic:', subtopicId)
     setCurrentSubtopicId(subtopicId)
     setCurrentView('tutor')
     clearConversation()
-    // Session will start when user sends first message
+    
+    // Generate and auto-send a problem from this subtopic
+    const problem = generateProblemForSubtopic(subtopicId)
+    if (problem) {
+      console.log('📝 [App] Auto-generated problem:', problem)
+      // Wait a brief moment for view to switch, then send the problem
+      setTimeout(() => {
+        handleSendMessage(problem)
+      }, 100)
+    }
   }
 
   const handleWhiteboardEvaluate = async (imageDataUrl: string) => {
