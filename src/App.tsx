@@ -330,10 +330,14 @@ function App() {
       }
 
       // Detect if answer is correct or incorrect and record attempt
-      console.log('🔍 [App] Practice session active?', practiceSession.isActive)
-      console.log('🔍 [App] Current session:', practiceSession.currentSession)
+      console.log('🔍 [App] Practice session status:', {
+        isActive: practiceSession.isActive,
+        hasSession: !!practiceSession.currentSession,
+        subtopicId: practiceSession.currentSession?.subtopicId || 'none',
+      })
       
-      if (practiceSession.isActive) {
+      // ✅ GUARD: Check both isActive AND currentSession exists
+      if (practiceSession.isActive && practiceSession.currentSession) {
         console.log('🔍 [App] Checking AI response for answer detection...')
         console.log('📝 [App] AI Response (with markers):', response.substring(0, 100))
         console.log('📝 [App] Display Response (markers stripped):', displayResponse.substring(0, 100))
@@ -343,6 +347,7 @@ function App() {
         if (isCorrectAnswer || isIncorrectAnswer) {
           console.log(`${isCorrectAnswer ? '✅' : '❌'} [App] Answer detected as ${isCorrectAnswer ? 'correct' : 'incorrect'}`)
           console.log(`📝 [App] Submitting attempt for message: "${messageContent}"`)
+          console.log('📤 [App] Submitting attempt with valid session...')
           
           // Record the attempt
           const attemptResult = await practiceSession.submitAttempt(
@@ -369,8 +374,12 @@ function App() {
           console.log('⏳ [App] No final answer detected yet, continuing conversation')
         }
       } else {
-        console.warn('⚠️ [App] Practice session is NOT active - XP will not be awarded')
-        console.log('📊 [App] Current subtopicId:', currentSubtopicId)
+        console.warn('⚠️ [App] Practice session is NOT valid - XP will not be awarded')
+        console.warn('📊 [App] Session details:', {
+          isActive: practiceSession.isActive,
+          hasSession: !!practiceSession.currentSession,
+          currentSubtopicId,
+        })
       }
 
       setStatus('idle')

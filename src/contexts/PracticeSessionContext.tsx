@@ -11,7 +11,7 @@
  * - Problem context
  */
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, ReactNode, useMemo, useEffect } from 'react'
 import { recordAttempt } from '../services/attemptService'
 import { AttemptResult } from '../types/attempt'
 import { useAuth } from './AuthContext'
@@ -42,31 +42,26 @@ export function PracticeSessionProvider({ children }: { children: ReactNode }) {
   const [currentSession, setCurrentSession] = useState<PracticeSession | null>(null)
   const [lastAttemptResult, setLastAttemptResult] = useState<AttemptResult | null>(null)
 
-  // 🔍 DEBUG: Track when provider mounts/unmounts
+  // 🔍 DEBUG: Track provider lifecycle
   useEffect(() => {
     console.log('🏗️ [PracticeSessionProvider] MOUNTED')
     return () => {
-      console.log('💥 [PracticeSessionProvider] UNMOUNTED - ALL STATE WILL BE LOST')
+      console.log('💥 [PracticeSessionProvider] UNMOUNTED')
     }
   }, [])
-  
-  // 🔍 DEBUG: Track all state changes to currentSession
+
+  // 🔍 DEBUG: Track all state changes
   useEffect(() => {
-    console.log('📊 [PracticeSessionProvider] currentSession changed:', {
+    console.log('📊 [PracticeSessionProvider] Session state changed:', {
       isActive: currentSession !== null,
-      subtopicId: currentSession?.subtopicId || 'null',
+      subtopicId: currentSession?.subtopicId || null,
       timestamp: new Date().toISOString(),
-      stackTrace: new Error().stack?.split('\n').slice(2, 5).join('\n') || 'no trace'
     })
   }, [currentSession])
 
-  /**
-   * Start a new practice session for a specific subtopic
-   */
   const startSession = useCallback((subtopicId: string, problemText: string, imageUrl?: string) => {
-    console.log('🎯 [Practice] Starting session for subtopic:', subtopicId)
-    console.log('📝 [Practice] Problem text:', problemText.substring(0, 100))
-    console.log('🖼️ [Practice] Has image:', !!imageUrl)
+    console.log('🎯 [PracticeSessionProvider] startSession CALLED')
+    console.log('📝 [PracticeSessionProvider] Current state BEFORE:', currentSession)
     
     const newSession: PracticeSession = {
       subtopicId,
@@ -79,37 +74,19 @@ export function PracticeSessionProvider({ children }: { children: ReactNode }) {
     setCurrentSession(newSession)
     setLastAttemptResult(null)
     
-    console.log('✅ [Practice] Session started successfully')
-    console.log('📊 [Practice] Session details:', {
-      subtopicId: newSession.subtopicId,
-      startTime: newSession.startTime.toISOString(),
-      hintsUsed: newSession.hintsUsed,
-    })
-  }, [])
+    console.log('✅ [PracticeSessionProvider] Session started:', newSession)
+  }, [])  // ✅ FIXED: Empty deps - startSession is stable
 
-  /**
-   * Increment hint count
-   */
   const useHint = useCallback(() => {
     setCurrentSession(prev => {
-      if (!prev) {
-        console.warn('⚠️ [Practice] Cannot use hint: no active session')
-        return prev
-      }
-      
-      const updatedSession = {
+      if (!prev) return prev
+      return {
         ...prev,
         hintsUsed: prev.hintsUsed + 1,
       }
-      
-      console.log('💡 [Practice] Hint used, total:', updatedSession.hintsUsed)
-      return updatedSession
     })
   }, [])
 
-  /**
-   * Record the attempt when student submits answer
-   */
   const submitAttempt = useCallback(async (
     studentResponse: string,
     isCorrect: boolean,
@@ -117,22 +94,18 @@ export function PracticeSessionProvider({ children }: { children: ReactNode }) {
   ): Promise<AttemptResult | null> => {
     const userId = user?.uid
 
+    console.log('📤 [PracticeSessionProvider] submitAttempt CALLED', {
+      hasSession: currentSession !== null,
+      hasUser: !!userId,
+      isCorrect,
+    })
+
     if (!currentSession || !userId) {
-      console.warn('⚠️ [Practice] Cannot submit attempt:', {
-        hasSession: !!currentSession,
-        hasUserId: !!userId,
-      })
+      console.warn('⚠️ [PracticeSessionProvider] Cannot submit attempt - missing session or user')
       return null
     }
 
     const timeSpent = Math.floor((new Date().getTime() - currentSession.startTime.getTime()) / 1000)
-    
-    console.log('📝 [Practice] Submitting attempt:', {
-      subtopicId: currentSession.subtopicId,
-      isCorrect,
-      timeSpent,
-      hintsUsed: currentSession.hintsUsed,
-    })
 
     try {
       const result = await recordAttempt(
@@ -147,64 +120,52 @@ export function PracticeSessionProvider({ children }: { children: ReactNode }) {
         conversationHistory
       )
 
-      console.log('✅ [Practice] Attempt recorded:', result)
+      console.log('✅ [PracticeSessionProvider] Attempt recorded:', result)
       setLastAttemptResult(result)
       
-      // Only clear session if answer was correct (problem solved)
-      // Keep session active for incorrect attempts so student can keep trying
+      // Only clear session if answer was correct
       if (isCorrect) {
-        console.log('✅ [Practice] Correct answer - ending session')
+        console.log('✅ [PracticeSessionProvider] Correct answer - ending session')
         setCurrentSession(null)
       } else {
-        console.log('⏳ [Practice] Incorrect answer - keeping session active for retry')
+        console.log('⏳ [PracticeSessionProvider] Incorrect answer - keeping session active')
       }
       
       return result
     } catch (error) {
-      console.error('❌ [Practice] Error recording attempt:', error)
+      console.error('❌ [PracticeSessionProvider] Error recording attempt:', error)
       return null
     }
-  }, [currentSession, user])
+  }, [currentSession, user])  // ✅ KEEP deps - needs current session & user
 
-  /**
-   * End session without recording (e.g., user navigates away)
-   */
   const endSession = useCallback(() => {
-    console.log('🛑 [Practice] Ending session')
+    console.log('🛑 [PracticeSessionProvider] endSession CALLED')
     setCurrentSession(null)
   }, [])
 
-  /**
-   * Clear last attempt result
-   */
   const clearLastResult = useCallback(() => {
-    console.log('🧹 [Practice] Clearing last attempt result')
+    console.log('🧹 [PracticeSessionProvider] clearLastResult CALLED')
     setLastAttemptResult(null)
   }, [])
 
-  // Computed property for whether session is active
   const isActive = currentSession !== null
 
-  // Log state changes for debugging
-  console.log('🔄 [PracticeSessionContext] State update:', {
+  // ✅ CRITICAL FIX: Memoize context value to prevent unnecessary re-renders
+  // Without this, the value object is recreated on every render, causing
+  // all consumers to re-render, which can trigger unintended logic
+  const value = useMemo(() => ({
+    currentSession,
+    lastAttemptResult,
+    startSession,
+    useHint,
+    submitAttempt,
+    endSession,
+    clearLastResult,
     isActive,
-    subtopicId: currentSession?.subtopicId || null,
-    hasLastResult: !!lastAttemptResult,
-  })
+  }), [currentSession, lastAttemptResult, startSession, useHint, submitAttempt, endSession, clearLastResult])
 
   return (
-    <PracticeSessionContext.Provider
-      value={{
-        currentSession,
-        lastAttemptResult,
-        startSession,
-        useHint,
-        submitAttempt,
-        endSession,
-        clearLastResult,
-        isActive,
-      }}
-    >
+    <PracticeSessionContext.Provider value={value}>
       {children}
     </PracticeSessionContext.Provider>
   )
@@ -217,4 +178,3 @@ export function usePracticeSession() {
   }
   return context
 }
-
