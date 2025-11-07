@@ -147,7 +147,10 @@ function App() {
     sessionStartedRef.current = false
     console.log('🔄 [App] Reset sessionStartedRef to false')
     
-    setCurrentSubtopicId(subtopicId)
+    // ✅ FIX: DON'T update currentSubtopicId here - causes race condition
+    // Let handleSendMessage update it AFTER session starts
+    // setCurrentSubtopicId(subtopicId)  // ❌ REMOVED
+    
     setCurrentView('tutor')
     clearConversation()
     
@@ -216,13 +219,19 @@ function App() {
       // Mark as started BEFORE calling startSession to prevent race conditions
       sessionStartedRef.current = true
       
+      // Start the session in the Context
       practiceSession.startSession(activeSubtopicId, content, imageUrl)
       
-      // Update state to match if explicit ID provided
-      if (explicitSubtopicId && explicitSubtopicId !== currentSubtopicId) {
-        console.log('📌 [App] Updating currentSubtopicId to:', explicitSubtopicId)
-        setCurrentSubtopicId(explicitSubtopicId)
-      }
+      // ✅ FIX: ALWAYS update currentSubtopicId after session starts
+      // This ensures it's in sync with the actual session, no race conditions
+      console.log('📌 [App] Updating currentSubtopicId to match session:', activeSubtopicId)
+      setCurrentSubtopicId(activeSubtopicId)
+      
+      // Verify session started
+      console.log('🔍 [App] Immediately after startSession:', {
+        isActive: practiceSession.isActive,
+        subtopicId: practiceSession.currentSession?.subtopicId || 'null',
+      })
       
       console.log('✅ [App] Practice session started successfully (ref now true)')
     } else if (!activeSubtopicId) {

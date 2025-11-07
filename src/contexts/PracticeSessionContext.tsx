@@ -158,11 +158,11 @@ export function PracticeSessionProvider({ children }: { children: ReactNode }) {
     lastAttemptResult,
     startSession,
     useHint,
-    submitAttempt,
+    submitAttempt,  // This changes when currentSession changes (has [currentSession, user] deps)
     endSession,
     clearLastResult,
     isActive,
-  }), [currentSession, lastAttemptResult, startSession, useHint, submitAttempt, endSession, clearLastResult])
+  }), [currentSession, lastAttemptResult, startSession, useHint, submitAttempt, endSession, clearLastResult, isActive])
 
   return (
     <PracticeSessionContext.Provider value={value}>
