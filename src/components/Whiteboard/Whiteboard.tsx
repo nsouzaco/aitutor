@@ -30,8 +30,6 @@ export default function Whiteboard({ onEvaluate }: WhiteboardProps = {}) {
 
   // Initialize canvas on mount
   useEffect(() => {
-    console.log('🎨 [Whiteboard] Initializing canvas...')
-    
     const canvas = canvasRef.current
     const container = containerRef.current
     
@@ -42,7 +40,6 @@ export default function Whiteboard({ onEvaluate }: WhiteboardProps = {}) {
 
     const initializeCanvas = () => {
       const rect = container.getBoundingClientRect()
-      console.log('📐 [Whiteboard] Container rect:', { width: rect.width, height: rect.height })
 
       if (rect.width === 0 || rect.height === 0) {
         console.warn('⚠️ [Whiteboard] Container has zero dimensions, retrying in 100ms...')
@@ -52,8 +49,6 @@ export default function Whiteboard({ onEvaluate }: WhiteboardProps = {}) {
 
       const width = Math.floor(rect.width)
       const height = Math.floor(rect.height)
-
-      console.log('✅ [Whiteboard] Setting canvas size:', { width, height })
       
       canvas.width = width
       canvas.height = height
@@ -74,7 +69,6 @@ export default function Whiteboard({ onEvaluate }: WhiteboardProps = {}) {
       drawGrid(ctx, width, height)
 
       setCanvasReady(true)
-      console.log('✅ [Whiteboard] Canvas ready!')
     }
 
     // Use requestAnimationFrame to ensure DOM is ready
