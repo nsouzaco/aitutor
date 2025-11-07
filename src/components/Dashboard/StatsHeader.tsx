@@ -9,6 +9,7 @@ interface StatsHeaderProps {
   weeklyXP: number
   monthlyXP: number
   dailyAverageXP: number
+  daysPracticedThisWeek: number
   currentStreak: number
   paceRating: {
     rating: 'excellent' | 'good' | 'fair' | 'needs-improvement'
@@ -22,6 +23,7 @@ export function StatsHeader({
   weeklyXP,
   monthlyXP,
   dailyAverageXP,
+  daysPracticedThisWeek,
   currentStreak,
   paceRating,
 }: StatsHeaderProps) {
@@ -61,8 +63,8 @@ export function StatsHeader({
           </div>
           <div>
             <p className="text-sm text-blue-600 font-medium">This Week</p>
-            <p className="text-2xl font-bold text-blue-900">{weeklyXP}</p>
-            <p className="text-xs text-blue-600">~{dailyAverageXP}/day</p>
+            <p className="text-2xl font-bold text-blue-900">{weeklyXP} XP</p>
+            <p className="text-xs text-blue-600">{daysPracticedThisWeek} {daysPracticedThisWeek === 1 ? 'day' : 'days'} practiced</p>
           </div>
         </div>
 
@@ -95,15 +97,15 @@ export function StatsHeader({
       <div className="mt-4 pt-4 border-t border-gray-200">
         <div className="flex items-center justify-between text-sm">
           <span className="text-gray-600">Monthly XP</span>
-          <span className="font-semibold text-gray-900">{monthlyXP} XP</span>
+          <span className="font-semibold text-gray-900">{monthlyXP.toLocaleString()} XP</span>
         </div>
         <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
           <div
-            className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500"
-            style={{ width: `${Math.min((monthlyXP / 400) * 100, 100)}%` }}
+            className="bg-gradient-to-r from-orange-500 to-blue-500 h-2 rounded-full transition-all duration-500"
+            style={{ width: `${monthlyXP > 0 ? Math.min((monthlyXP / 400) * 100, 100) : 0}%` }}
           />
         </div>
-        <p className="text-xs text-gray-500 mt-1">Goal: 400 XP/month</p>
+        <p className="text-xs text-gray-500 mt-1">Goal: 400 XP/month • {Math.round((monthlyXP / 400) * 100)}% complete</p>
       </div>
     </div>
   )

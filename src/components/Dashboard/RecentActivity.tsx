@@ -1,15 +1,46 @@
 /**
- * RecentActivity - Display recent attempts
+ * RecentActivity - Display recent conversations
  */
 
-import { CheckCircle, XCircle, Clock, Star } from 'lucide-react'
-import { RecentActivity as RecentActivityType } from '../../types/attempt'
+import { useState, useEffect } from 'react'
+import { MessageSquare, Clock, History } from 'lucide-react'
+import { getUserConversations } from '../../services/firestoreService'
 
 interface RecentActivityProps {
-  activities: RecentActivityType[]
+  userId: string
 }
 
-export function RecentActivity({ activities }: RecentActivityProps) {
+interface ConversationItem {
+  conversationId: string
+  problemText: string
+  messageCount: number
+  updatedAt: Date
+}
+
+export function RecentActivity({ userId }: RecentActivityProps) {
+  const [conversations, setConversations] = useState<ConversationItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadConversations()
+  }, [userId])
+
+  const loadConversations = async () => {
+    try {
+      setLoading(true)
+      const recentConversations = await getUserConversations(userId, 4)
+      setConversations(recentConversations.map(conv => ({
+        conversationId: conv.conversationId,
+        problemText: conv.problemText || 'Untitled conversation',
+        messageCount: conv.messages.length,
+        updatedAt: conv.updatedAt?.toDate() || new Date(),
+      })))
+    } catch (error) {
+      console.error('Error loading conversations:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
   const formatTimeAgo = (date: Date) => {
     const now = new Date()
     const diffMs = now.getTime() - date.getTime()
@@ -24,14 +55,26 @@ export function RecentActivity({ activities }: RecentActivityProps) {
     return date.toLocaleDateString()
   }
 
-  if (activities.length === 0) {
+  if (loading) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Activity</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Conversations</h2>
         <div className="text-center py-8">
-          <Clock className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">No activity yet</p>
-          <p className="text-sm text-gray-400 mt-1">Start solving problems to see your progress here!</p>
+          <Clock className="w-8 h-8 text-gray-300 mx-auto mb-2 animate-spin" />
+          <p className="text-sm text-gray-400">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (conversations.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Conversations</h2>
+        <div className="text-center py-8">
+          <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+          <p className="text-gray-500">No conversations yet</p>
+          <p className="text-sm text-gray-400 mt-1">Start solving problems to see your chat history!</p>
         </div>
       </div>
     )
@@ -39,49 +82,49 @@ export function RecentActivity({ activities }: RecentActivityProps) {
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Activity</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-gray-900">Recent Conversations</h2>
+        <History className="w-5 h-5 text-gray-400" />
+      </div>
 
       <div className="space-y-3">
-        {activities.map((activity) => (
+        {conversations.map((conversation) => (
           <div
-            key={activity.attemptId}
-            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            key={conversation.conversationId}
+            className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
           >
-            <div className="flex items-center space-x-3 flex-1 min-w-0">
-              {/* Status Icon */}
-              {activity.isCorrect ? (
-                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-              ) : (
-                <XCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-              )}
+            {/* Icon */}
+            <MessageSquare className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
 
-              {/* Topic Name */}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {activity.subtopicName}
-                </p>
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {conversation.problemText}
+              </p>
+              <div className="flex items-center space-x-2 mt-1">
                 <p className="text-xs text-gray-500">
-                  {formatTimeAgo(activity.attemptedAt)}
+                  {conversation.messageCount} {conversation.messageCount === 1 ? 'message' : 'messages'}
+                </p>
+                <span className="text-xs text-gray-400">•</span>
+                <p className="text-xs text-gray-500">
+                  {formatTimeAgo(conversation.updatedAt)}
                 </p>
               </div>
-            </div>
-
-            {/* XP Badge */}
-            <div className="flex items-center space-x-1 ml-3 flex-shrink-0">
-              <Star className="w-4 h-4 text-yellow-500" />
-              <span className="text-sm font-semibold text-gray-900">
-                +{activity.xpEarned}
-              </span>
             </div>
           </div>
         ))}
       </div>
 
-      {activities.length >= 5 && (
-        <button className="mt-4 w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium">
-          View All Activity →
-        </button>
-      )}
+      <button 
+        className="mt-4 w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium py-2 px-4 rounded-lg hover:bg-blue-50 transition-colors"
+        onClick={() => {
+          // Trigger the history modal - we'll use the global history button
+          const historyButton = document.querySelector('[aria-label="View conversation history"]') as HTMLButtonElement
+          if (historyButton) historyButton.click()
+        }}
+      >
+        View All Conversations →
+      </button>
     </div>
   )
 }

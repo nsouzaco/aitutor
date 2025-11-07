@@ -103,24 +103,24 @@ export function ProgressDashboard({ userId, onStartPractice }: ProgressDashboard
             weeklyXP={dashboardData.weeklyXP}
             monthlyXP={dashboardData.monthlyXP}
             dailyAverageXP={dashboardData.dailyAverageXP}
+            daysPracticedThisWeek={dashboardData.daysPracticedThisWeek}
             currentStreak={dashboardData.currentStreak}
             paceRating={paceRating}
           />
         </div>
 
-        {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Main Content (2/3) */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Knowledge Frontier */}
-            <KnowledgeFrontier
-              recommendedTopic={recommendedTopic}
-              onStartPractice={onStartPractice}
-            />
+        {/* Main Content */}
+        <div className="space-y-6">
+          {/* Knowledge Frontier */}
+          <KnowledgeFrontier
+            recommendedTopic={recommendedTopic}
+            onStartPractice={onStartPractice}
+          />
 
-            {/* Mastery Overview and Unit Progress - Side by Side */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Mastery Progress */}
+          {/* Three Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Mastery Progress */}
+            <div className="lg:col-span-1">
               <MasteryProgress
                 masteryPercentage={dashboardData.masteryPercentage}
                 topicsMastered={dashboardData.topicsMastered}
@@ -128,15 +128,17 @@ export function ProgressDashboard({ userId, onStartPractice }: ProgressDashboard
                 topicsInProgress={dashboardData.topicsInProgress}
                 topicsLocked={dashboardData.topicsLocked}
               />
+            </div>
 
-              {/* Unit Breakdown */}
+            {/* Unit Breakdown */}
+            <div className="lg:col-span-1">
               <UnitBreakdown units={unitProgress} />
             </div>
-          </div>
 
-          {/* Right Column - Sidebar (1/3) */}
-          <div className="lg:col-span-1">
-            <RecentActivity activities={dashboardData.recentActivity} />
+            {/* Recent Activity */}
+            <div className="lg:col-span-1">
+              <RecentActivity userId={userId} />
+            </div>
           </div>
         </div>
       </div>

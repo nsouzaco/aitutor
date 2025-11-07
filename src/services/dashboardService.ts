@@ -26,6 +26,7 @@ export interface DashboardSummary {
   weeklyXP: number
   monthlyXP: number
   dailyAverageXP: number
+  daysPracticedThisWeek: number
   
   // Engagement
   currentStreak: number
@@ -79,7 +80,7 @@ export async function getDashboardSummary(
 
     // Calculate XP stats
     const totalXP = profileData.totalXP || 0
-    const { weeklyXP, monthlyXP } = await calculateXPStats(userId)
+    const { weeklyXP, monthlyXP, daysPracticedThisWeek } = await calculateXPStats(userId)
     const dailyAverageXP = Math.round(weeklyXP / 7)
 
     // Calculate mastery stats
@@ -112,6 +113,7 @@ export async function getDashboardSummary(
       weeklyXP,
       monthlyXP,
       dailyAverageXP,
+      daysPracticedThisWeek,
       currentStreak: profileData.currentStreak || 0,
       longestStreak: profileData.longestStreak || 0,
       masteryPercentage,
@@ -131,11 +133,11 @@ export async function getDashboardSummary(
 }
 
 /**
- * Calculate XP earned in last 7 days and 30 days
+ * Calculate XP earned and days practiced in last 7 days and 30 days
  */
 async function calculateXPStats(
   userId: string
-): Promise<{ weeklyXP: number; monthlyXP: number }> {
+): Promise<{ weeklyXP: number; monthlyXP: number; daysPracticedThisWeek: number }> {
   try {
     const attemptsRef = collection(db, 'students', userId, 'attempts')
     const attemptsSnap = await getDocs(attemptsRef)
@@ -146,6 +148,7 @@ async function calculateXPStats(
 
     let weeklyXP = 0
     let monthlyXP = 0
+    const uniqueDaysThisWeek = new Set<string>()
 
     attemptsSnap.forEach(doc => {
       const data = doc.data()
@@ -154,16 +157,23 @@ async function calculateXPStats(
 
       if (attemptDate >= sevenDaysAgo) {
         weeklyXP += xp
+        // Track unique days (YYYY-MM-DD format)
+        const dayKey = attemptDate.toISOString().split('T')[0]
+        uniqueDaysThisWeek.add(dayKey)
       }
       if (attemptDate >= thirtyDaysAgo) {
         monthlyXP += xp
       }
     })
 
-    return { weeklyXP, monthlyXP }
+    return { 
+      weeklyXP, 
+      monthlyXP,
+      daysPracticedThisWeek: uniqueDaysThisWeek.size
+    }
   } catch (error) {
     console.error('Error calculating XP stats:', error)
-    return { weeklyXP: 0, monthlyXP: 0 }
+    return { weeklyXP: 0, monthlyXP: 0, daysPracticedThisWeek: 0 }
   }
 }
 
