@@ -141,15 +141,15 @@ export default function Header({ currentView = 'tutor', onNewProblem, onLoadConv
           {/* User Menu - Right Side */}
           {user && (
             <div className="flex items-center gap-2">
-              {/* XP Display */}
-              <div className={`flex items-center gap-1.5 rounded-full border border-purple-300 bg-purple-50 px-3 py-2 transition-all duration-300 ${
-                xpPulse ? 'scale-110 shadow-lg ring-2 ring-purple-400' : 'scale-100'
+              {/* XP Display - 🟠 ORANGE = NEW CODE DEPLOYED! */}
+              <div className={`flex items-center gap-1.5 rounded-full border border-orange-300 bg-orange-50 px-3 py-2 transition-all duration-300 ${
+                xpPulse ? 'scale-110 shadow-lg ring-2 ring-orange-400' : 'scale-100'
               }`}>
-                <Star className={`w-4 h-4 text-purple-600 fill-purple-600 transition-transform duration-300 ${
+                <Star className={`w-4 h-4 text-orange-600 fill-orange-600 transition-transform duration-300 ${
                   xpPulse ? 'rotate-180 scale-125' : 'rotate-0 scale-100'
                 }`} />
-                <span className="text-sm font-bold text-purple-900">{totalXP.toLocaleString()}</span>
-                <span className="text-xs text-purple-600 hidden sm:inline">XP</span>
+                <span className="text-sm font-bold text-orange-900">{totalXP.toLocaleString()}</span>
+                <span className="text-xs text-orange-600 hidden sm:inline">XP</span>
               </div>
 
               {/* History Button */}
