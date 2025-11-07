@@ -20,6 +20,7 @@ import {
 } from './utils/promptBuilder'
 import { detectCorrectAnswer, detectIncorrectAnswer, isAskingQuestion, stripValidationMarkers } from './utils/answerDetection'
 import { generateProblemForSubtopic } from './utils/problemGenerator'
+import { getSubtopicById } from './data/curriculum'
 
 type ViewMode = 'tutor' | 'dashboard' | 'topics' | 'placement'
 
@@ -145,12 +146,29 @@ function App() {
     
     // Generate and auto-send a problem from this subtopic
     const problem = generateProblemForSubtopic(subtopicId)
+    
     if (problem) {
       console.log('📝 [App] Auto-generated problem:', problem)
       // Wait a brief moment for view to switch, then send the problem
       // Pass subtopicId directly to avoid state timing issues
       setTimeout(() => {
         handleSendMessage(problem, undefined, subtopicId)
+      }, 100)
+    } else {
+      // Fallback if no problem could be generated
+      console.error('❌ [App] No problem could be generated for subtopic:', subtopicId)
+      console.error('💡 [App] This subtopic may be missing example problems in curriculum.ts')
+      
+      // Send generic practice message so session can still start
+      const subtopic = getSubtopicById(subtopicId)
+      const fallbackMessage = subtopic 
+        ? `Let's practice ${subtopic.name}! What problem would you like to work on?`
+        : `Let's start practicing! What problem would you like to work on?`
+      
+      console.log('📝 [App] Using fallback message:', fallbackMessage)
+      
+      setTimeout(() => {
+        handleSendMessage(fallbackMessage, undefined, subtopicId)
       }, 100)
     }
   }
@@ -171,8 +189,9 @@ function App() {
     // Use explicit subtopicId if provided (from handleStartPractice), otherwise use state
     const activeSubtopicId = explicitSubtopicId || currentSubtopicId
     
-    // Start practice session if this is the first message and subtopic is selected
-    console.log('🔍 [App] Check practice session start:', {
+    // 🔧 NEW LOGIC: Start session if not active AND subtopic is selected
+    // This works for ANY message (first, second, or later), providing automatic recovery
+    console.log('🔍 [App] Check practice session:', {
       messagesLength: conversation.messages.length,
       currentSubtopicId,
       explicitSubtopicId,
@@ -180,25 +199,25 @@ function App() {
       isActive: practiceSession.isActive
     })
     
-    if (conversation.messages.length === 0 && activeSubtopicId && !practiceSession.isActive) {
+    if (!practiceSession.isActive && activeSubtopicId) {
+      // Start or restart session (works for any message, not just first)
       console.log('🎯 [App] Starting practice session for subtopic:', activeSubtopicId)
-      practiceSession.startSession(activeSubtopicId, content, imageUrl)
-      console.log('✅ [App] Practice session started successfully')
+      console.log('📝 [App] Session will track XP from this point forward')
       
-      // Update state to match
-      if (explicitSubtopicId) {
+      practiceSession.startSession(activeSubtopicId, content, imageUrl)
+      
+      // Update state to match if explicit ID provided
+      if (explicitSubtopicId && explicitSubtopicId !== currentSubtopicId) {
+        console.log('📌 [App] Updating currentSubtopicId to:', explicitSubtopicId)
         setCurrentSubtopicId(explicitSubtopicId)
       }
+      
+      console.log('✅ [App] Practice session started successfully')
+    } else if (!activeSubtopicId) {
+      console.warn('⚠️ [App] No subtopic selected - XP will not be tracked!')
+      console.warn('💡 [App] To track XP, start practice from Dashboard or Topics view')
     } else {
-      if (conversation.messages.length > 0) {
-        console.log('⏭️ [App] Not first message, session should already be started')
-      }
-      if (!activeSubtopicId) {
-        console.warn('⚠️ [App] No subtopic selected - XP will not be tracked!')
-      }
-      if (practiceSession.isActive) {
-        console.log('✅ [App] Session already active')
-      }
+      console.log('✅ [App] Practice session already active for subtopic:', activeSubtopicId)
     }
     
     // Show typing indicator early if processing image
