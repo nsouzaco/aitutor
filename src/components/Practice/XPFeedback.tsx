@@ -14,10 +14,16 @@ interface XPFeedbackProps {
 
 export function XPFeedback({ result, onClose }: XPFeedbackProps) {
   const [show, setShow] = useState(false)
+  const [confetti, setConfetti] = useState(false)
 
   useEffect(() => {
     // Trigger animation
     setShow(true)
+    if (result.isCorrect) {
+      setConfetti(true)
+      // Add confetti effect for correct answers
+      setTimeout(() => setConfetti(false), 3000)
+    }
   }, [])
 
   const handleClose = () => {
@@ -32,12 +38,51 @@ export function XPFeedback({ result, onClose }: XPFeedbackProps) {
       }`}
       onClick={handleClose}
     >
+      {/* Confetti animation */}
+      {confetti && result.isCorrect && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {[...Array(50)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 animate-ping"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `-10%`,
+                backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'][Math.floor(Math.random() * 5)],
+                animation: `fall ${2 + Math.random() * 2}s linear ${Math.random() * 0.5}s`,
+                animationFillMode: 'forwards',
+              }}
+            />
+          ))}
+        </div>
+      )}
+      
+      <style>{`
+        @keyframes fall {
+          to {
+            transform: translateY(100vh) rotate(360deg);
+            opacity: 0;
+          }
+        }
+      `}</style>
+
       <div
-        className={`bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 transform transition-all duration-300 ${
-          show ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'
-        }`}
+        className={`bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 transform transition-all duration-500 ${
+          show ? 'scale-100 translate-y-0 rotate-0' : 'scale-75 translate-y-8 rotate-3'
+        } ${result.isCorrect ? 'animate-bounce-in' : ''}`}
         onClick={(e) => e.stopPropagation()}
       >
+        <style>{`
+          @keyframes bounce-in {
+            0% { transform: scale(0.3) rotate(0deg); }
+            50% { transform: scale(1.05) rotate(2deg); }
+            70% { transform: scale(0.9) rotate(-1deg); }
+            100% { transform: scale(1) rotate(0deg); }
+          }
+          .animate-bounce-in {
+            animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+          }
+        `}</style>
         {/* Close Button */}
         <button
           onClick={handleClose}

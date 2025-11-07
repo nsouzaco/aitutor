@@ -225,22 +225,39 @@ function App() {
       // Track hints (Socratic questions count as hints)
       if (practiceSession.isActive && isAskingQuestion(response)) {
         practiceSession.useHint()
+        console.log('💡 [App] Hint detected in AI response')
       }
 
       // Detect if answer is correct or incorrect and record attempt
       if (practiceSession.isActive) {
+        console.log('🔍 [App] Checking AI response for answer detection...')
+        console.log('📝 [App] AI Response:', response.substring(0, 100))
+        
         const isCorrect = detectCorrectAnswer(response)
         const isIncorrect = detectIncorrectAnswer(response)
+        
+        console.log(`🎯 [App] Detection results - Correct: ${isCorrect}, Incorrect: ${isIncorrect}`)
         
         if (isCorrect || isIncorrect) {
           console.log(`${isCorrect ? '✅' : '❌'} [App] Answer detected as ${isCorrect ? 'correct' : 'incorrect'}`)
           
           // Record the attempt
-          await practiceSession.submitAttempt(
+          const attemptResult = await practiceSession.submitAttempt(
             messageContent,
             isCorrect,
             conversation.messages
           )
+          
+          if (attemptResult) {
+            console.log('🎉 [App] Attempt recorded successfully, XP:', attemptResult.xpEarned)
+            // Refresh Header XP
+            if ((window as any).refreshHeaderXP) {
+              console.log('🔄 [App] Refreshing Header XP...')
+              setTimeout(() => (window as any).refreshHeaderXP(), 500)
+            }
+          }
+        } else {
+          console.log('⏳ [App] No final answer detected yet, continuing conversation')
         }
       }
 

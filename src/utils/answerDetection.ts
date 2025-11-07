@@ -11,7 +11,7 @@ export function detectCorrectAnswer(aiResponse: string): boolean {
   const correctPatterns = [
     /that'?s?\s+(absolutely\s+)?correct/i,
     /you'?re\s+(absolutely\s+)?right/i,
-    /exactly!?/i,
+    /exactly!?\s+right/i,
     /perfect!?/i,
     /well\s+done/i,
     /great\s+(job|work)/i,
@@ -22,6 +22,11 @@ export function detectCorrectAnswer(aiResponse: string): boolean {
     /you'?ve\s+solved\s+it/i,
     /that'?s\s+the\s+answer/i,
     /nicely\s+done/i,
+    /exactly\s+right/i,
+    /great\s+job/i,
+    /you\s+did\s+it/i,
+    /you\s+solved\s+it/i,
+    /congratulations/i,
   ]
 
   return correctPatterns.some(pattern => pattern.test(aiResponse))
