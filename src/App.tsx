@@ -30,6 +30,13 @@ function App() {
   const [currentSubtopicId, setCurrentSubtopicId] = useState<string | null>(null)
   const [checkingPlacement, setCheckingPlacement] = useState(true)
   
+  // ✅ SOLUTION B: Store pending attempt to be submitted AFTER session becomes active
+  const [pendingAttempt, setPendingAttempt] = useState<{
+    response: string
+    isCorrect: boolean
+    history: any[]
+  } | null>(null)
+  
   // ✅ FIX: Track if session was started to prevent re-initialization on re-renders
   const sessionStartedRef = useRef(false)
   
@@ -84,6 +91,55 @@ function App() {
 
     checkPlacement()
   }, [user])
+
+  // ✅ SOLUTION B: Submit attempt AFTER session becomes active
+  // This useEffect waits for React to finish updating the Provider state
+  // and only then submits the attempt with fresh, non-stale context values
+  useEffect(() => {
+    // Nothing to do if no attempt pending
+    if (!pendingAttempt) return
+
+    // Wait until the Provider actually has a session
+    if (!practiceSession.isActive || !practiceSession.currentSession) {
+      console.log('⏳ [App] Waiting for session to be ready before submitting attempt...')
+      return
+    }
+
+    console.log('✅ [App] Session ready — submitting attempt now')
+    console.log('📊 [App] Session details:', {
+      isActive: practiceSession.isActive,
+      subtopicId: practiceSession.currentSession.subtopicId,
+    })
+
+    const { response, isCorrect, history } = pendingAttempt
+
+    practiceSession
+      .submitAttempt(response, isCorrect, history)
+      .then(result => {
+        if (result) {
+          console.log('🎉 [App] XP awarded from useEffect:', result.xpEarned)
+          
+          // Refresh Header XP
+          if ((window as any).refreshHeaderXP) {
+            console.log('🔄 [App] Refreshing Header XP...')
+            setTimeout(() => (window as any).refreshHeaderXP(), 500)
+          } else {
+            console.warn('⚠️ [App] refreshHeaderXP function not found on window')
+          }
+        }
+      })
+      .catch(error => {
+        console.error('❌ [App] Error submitting attempt:', error)
+      })
+      .finally(() => {
+        setPendingAttempt(null)
+      })
+  }, [
+    pendingAttempt,
+    practiceSession.isActive,
+    practiceSession.currentSession,
+    practiceSession,
+  ])
 
   const handlePlacementComplete = () => {
     console.log('✅ [App] Placement test completed')
@@ -336,57 +392,28 @@ function App() {
         console.log('💡 [App] Hint detected in AI response')
       }
 
-      // Detect if answer is correct or incorrect and record attempt
-      console.log('🔍 [App] Practice session status:', {
-        isActive: practiceSession.isActive,
-        hasSession: !!practiceSession.currentSession,
-        subtopicId: practiceSession.currentSession?.subtopicId || 'none',
-      })
+      // ✅ SOLUTION B: Detect correctness and queue attempt for submission
+      // DO NOT check practiceSession.isActive here - it's stale!
+      // The useEffect will handle submission after session becomes active
+      console.log('🔍 [App] Checking AI response for answer detection...')
+      console.log('📝 [App] AI Response (with markers):', response.substring(0, 100))
+      console.log('📝 [App] Display Response (markers stripped):', displayResponse.substring(0, 100))
+      console.log(`🎯 [App] Detection results - Correct: ${isCorrectAnswer}, Incorrect: ${isIncorrectAnswer}`)
       
-      // ✅ GUARD: Check both isActive AND currentSession exists
-      if (practiceSession.isActive && practiceSession.currentSession) {
-        console.log('🔍 [App] Checking AI response for answer detection...')
-        console.log('📝 [App] AI Response (with markers):', response.substring(0, 100))
-        console.log('📝 [App] Display Response (markers stripped):', displayResponse.substring(0, 100))
+      if (isCorrectAnswer || isIncorrectAnswer) {
+        console.log(`${isCorrectAnswer ? '✅' : '❌'} [App] Answer detected as ${isCorrectAnswer ? 'correct' : 'incorrect'}`)
+        console.log(`📝 [App] Queueing attempt for submission: "${messageContent}"`)
         
-        console.log(`🎯 [App] Detection results - Correct: ${isCorrectAnswer}, Incorrect: ${isIncorrectAnswer}`)
-        
-        if (isCorrectAnswer || isIncorrectAnswer) {
-          console.log(`${isCorrectAnswer ? '✅' : '❌'} [App] Answer detected as ${isCorrectAnswer ? 'correct' : 'incorrect'}`)
-          console.log(`📝 [App] Submitting attempt for message: "${messageContent}"`)
-          console.log('📤 [App] Submitting attempt with valid session...')
-          
-          // Record the attempt
-          const attemptResult = await practiceSession.submitAttempt(
-            messageContent,
-            isCorrectAnswer,
-            conversation.messages
-          )
-          
-          console.log('📊 [App] Attempt result:', attemptResult)
-          
-          if (attemptResult) {
-            console.log('🎉 [App] Attempt recorded successfully, XP:', attemptResult.xpEarned)
-            // Refresh Header XP
-            if ((window as any).refreshHeaderXP) {
-              console.log('🔄 [App] Refreshing Header XP...')
-              setTimeout(() => (window as any).refreshHeaderXP(), 500)
-            } else {
-              console.warn('⚠️ [App] refreshHeaderXP function not found on window')
-            }
-          } else {
-            console.error('❌ [App] Attempt result was null!')
-          }
-        } else {
-          console.log('⏳ [App] No final answer detected yet, continuing conversation')
-        }
-      } else {
-        console.warn('⚠️ [App] Practice session is NOT valid - XP will not be awarded')
-        console.warn('📊 [App] Session details:', {
-          isActive: practiceSession.isActive,
-          hasSession: !!practiceSession.currentSession,
-          currentSubtopicId,
+        // ✅ Queue the attempt - useEffect will submit it after session becomes active
+        setPendingAttempt({
+          response: messageContent,
+          isCorrect: isCorrectAnswer,
+          history: conversation.messages,
         })
+        
+        console.log('⏳ [App] Attempt queued, waiting for session to be ready...')
+      } else {
+        console.log('⏳ [App] No final answer detected yet, continuing conversation')
       }
 
       setStatus('idle')
