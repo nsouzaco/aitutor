@@ -8,8 +8,7 @@ import { ProgressDashboard } from './components/Dashboard'
 import { TopicBrowser } from './components/Topics'
 import { XPFeedback } from './components/Practice'
 import { PlacementTest } from './components/Placement'
-import { useConversation, useAuth } from './contexts'
-import { usePracticeSession } from './hooks'
+import { useConversation, useAuth, usePracticeSession } from './contexts'
 import { sendMessage, extractTextFromImage } from './services/vercelApiService'
 import { initializeStudentProfile } from './services/progressService'
 import { hasCompletedPlacementTest } from './services/placementService'
@@ -41,7 +40,7 @@ function App() {
     loadConversation,
   } = useConversation()
   
-  const practiceSession = usePracticeSession(user?.uid || null)
+  const practiceSession = usePracticeSession()
 
   // Initialize student profile when user logs in
   useEffect(() => {
