@@ -29,7 +29,19 @@ export function detectCorrectAnswer(aiResponse: string): boolean {
     /congratulations/i,
   ]
 
-  return correctPatterns.some(pattern => pattern.test(aiResponse))
+  const matches = correctPatterns.some(pattern => {
+    const isMatch = pattern.test(aiResponse)
+    if (isMatch) {
+      console.log('✅ [Detection] Matched pattern:', pattern, 'in response:', aiResponse.substring(0, 100))
+    }
+    return isMatch
+  })
+  
+  if (!matches) {
+    console.log('❌ [Detection] No correct answer pattern matched in:', aiResponse.substring(0, 100))
+  }
+  
+  return matches
 }
 
 /**

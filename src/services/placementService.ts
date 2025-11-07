@@ -6,7 +6,7 @@
 
 import { doc, writeBatch, serverTimestamp } from 'firebase/firestore'
 import { db } from './firebaseService'
-import { calculatePlacementResults, PLACEMENT_TEST_QUESTIONS } from '../data/placementTest'
+import { calculatePlacementResults } from '../data/placementTest'
 import { getSubtopicById, getAllSubtopics } from '../data/curriculum'
 
 export interface PlacementTestSubmission {
@@ -36,32 +36,32 @@ export async function submitPlacementTest(
   const allSubtopics = getAllSubtopics()
   const subtopicsToUnlock: string[] = []
 
-  // Unlock based on level
+  // Unlock based on level (difficulty: 1=beginner, 2=intermediate, 3=advanced)
   if (results.level === 'advanced') {
-    // Unlock all beginner and intermediate topics, plus some advanced
+    // Unlock all beginner and intermediate topics (difficulty 1 & 2), plus some advanced (3)
     allSubtopics.forEach((subtopic) => {
-      if (subtopic.difficulty === 'beginner' || subtopic.difficulty === 'intermediate') {
+      if (subtopic.difficulty === 1 || subtopic.difficulty === 2) {
         subtopicsToUnlock.push(subtopic.id)
       }
     })
     // Also unlock advanced topics they got correct
     results.masteredSubtopics.forEach((id) => {
       const subtopic = getSubtopicById(id)
-      if (subtopic && subtopic.difficulty === 'advanced') {
+      if (subtopic && subtopic.difficulty === 3) {
         subtopicsToUnlock.push(id)
       }
     })
   } else if (results.level === 'intermediate') {
-    // Unlock all beginner topics
+    // Unlock all beginner topics (difficulty 1)
     allSubtopics.forEach((subtopic) => {
-      if (subtopic.difficulty === 'beginner') {
+      if (subtopic.difficulty === 1) {
         subtopicsToUnlock.push(subtopic.id)
       }
     })
     // Also unlock intermediate topics they got correct
     results.masteredSubtopics.forEach((id) => {
       const subtopic = getSubtopicById(id)
-      if (subtopic && subtopic.difficulty === 'intermediate') {
+      if (subtopic && subtopic.difficulty === 2) {
         subtopicsToUnlock.push(id)
       }
     })
@@ -108,7 +108,7 @@ export async function submitPlacementTest(
   })
 
   await batch.commit()
-  console.log('✅ [PlacementService] Placement test saved, unlocked subtopics:', uniqueUnlocked)
+  console.log('✅ [PlacementService] Placement test saved, unlocked', uniqueUnlocked.length, 'subtopics')
 
   return {
     score: results.score,

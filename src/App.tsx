@@ -168,9 +168,26 @@ function App() {
     let messageContent = content
     
     // Start practice session if this is the first message and subtopic is selected
+    console.log('🔍 [App] Check practice session start:', {
+      messagesLength: conversation.messages.length,
+      currentSubtopicId,
+      isActive: practiceSession.isActive
+    })
+    
     if (conversation.messages.length === 0 && currentSubtopicId && !practiceSession.isActive) {
-      console.log('🎯 [App] Starting practice session')
+      console.log('🎯 [App] Starting practice session for subtopic:', currentSubtopicId)
       practiceSession.startSession(currentSubtopicId, content, imageUrl)
+      console.log('✅ [App] Practice session started successfully')
+    } else {
+      if (conversation.messages.length > 0) {
+        console.log('⏭️ [App] Not first message, session should already be started')
+      }
+      if (!currentSubtopicId) {
+        console.warn('⚠️ [App] No subtopic selected - XP will not be tracked!')
+      }
+      if (practiceSession.isActive) {
+        console.log('✅ [App] Session already active')
+      }
     }
     
     // Show typing indicator early if processing image
@@ -264,9 +281,13 @@ function App() {
       }
 
       // Detect if answer is correct or incorrect and record attempt
+      console.log('🔍 [App] Practice session active?', practiceSession.isActive)
+      console.log('🔍 [App] Current session:', practiceSession.currentSession)
+      
       if (practiceSession.isActive) {
         console.log('🔍 [App] Checking AI response for answer detection...')
         console.log('📝 [App] AI Response:', response.substring(0, 100))
+        console.log('📝 [App] Full AI Response:', response)
         
         const isCorrect = detectCorrectAnswer(response)
         const isIncorrect = detectIncorrectAnswer(response)
@@ -275,6 +296,7 @@ function App() {
         
         if (isCorrect || isIncorrect) {
           console.log(`${isCorrect ? '✅' : '❌'} [App] Answer detected as ${isCorrect ? 'correct' : 'incorrect'}`)
+          console.log(`📝 [App] Submitting attempt for message: "${messageContent}"`)
           
           // Record the attempt
           const attemptResult = await practiceSession.submitAttempt(
@@ -283,17 +305,26 @@ function App() {
             conversation.messages
           )
           
+          console.log('📊 [App] Attempt result:', attemptResult)
+          
           if (attemptResult) {
             console.log('🎉 [App] Attempt recorded successfully, XP:', attemptResult.xpEarned)
             // Refresh Header XP
             if ((window as any).refreshHeaderXP) {
               console.log('🔄 [App] Refreshing Header XP...')
               setTimeout(() => (window as any).refreshHeaderXP(), 500)
+            } else {
+              console.warn('⚠️ [App] refreshHeaderXP function not found on window')
             }
+          } else {
+            console.error('❌ [App] Attempt result was null!')
           }
         } else {
           console.log('⏳ [App] No final answer detected yet, continuing conversation')
         }
+      } else {
+        console.warn('⚠️ [App] Practice session is NOT active - XP will not be awarded')
+        console.log('📊 [App] Current subtopicId:', currentSubtopicId)
       }
 
       setStatus('idle')

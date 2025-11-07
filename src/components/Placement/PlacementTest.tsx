@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Brain, CheckCircle, ChevronRight, Sparkles } from 'lucide-react'
-import { PLACEMENT_TEST_QUESTIONS, PlacementQuestion } from '../../data/placementTest'
+import { PLACEMENT_TEST_QUESTIONS } from '../../data/placementTest'
 import { submitPlacementTest } from '../../services/placementService'
 
 interface PlacementTestProps {
