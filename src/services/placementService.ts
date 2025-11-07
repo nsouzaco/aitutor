@@ -91,7 +91,6 @@ export async function submitPlacementTest(
   )
 
   // Initialize progress for unlocked subtopics
-  const now = new Date()
   uniqueUnlocked.forEach((subtopicId) => {
     const progressRef = doc(db, 'students', userId, 'progress', subtopicId)
     batch.set(progressRef, {
