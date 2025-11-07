@@ -298,7 +298,7 @@ export async function initializeStudentProfile(
 }
 
 /**
- * Update student's total XP
+ * Update student's total XP and streak
  */
 export async function updateStudentXP(
   userId: string,
@@ -312,10 +312,47 @@ export async function updateStudentXP(
       throw new Error('Student profile not found')
     }
 
-    const currentXP = studentSnap.data().totalXP || 0
+    const studentData = studentSnap.data()
+    const currentXP = studentData.totalXP || 0
+    const lastActiveAt = studentData.lastActiveAt?.toDate()
+    const currentStreak = studentData.currentStreak || 0
+    const longestStreak = studentData.longestStreak || 0
+    
+    // Calculate new streak
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const lastActiveDate = lastActiveAt 
+      ? new Date(lastActiveAt.getFullYear(), lastActiveAt.getMonth(), lastActiveAt.getDate())
+      : null
+    
+    let newStreak = currentStreak
+    
+    if (!lastActiveDate) {
+      // First time user - start streak at 1
+      newStreak = 1
+    } else {
+      const daysDiff = Math.floor((today.getTime() - lastActiveDate.getTime()) / (1000 * 60 * 60 * 24))
+      
+      if (daysDiff === 0) {
+        // Same day - keep current streak
+        newStreak = currentStreak || 1
+      } else if (daysDiff === 1) {
+        // Consecutive day - increment streak
+        newStreak = currentStreak + 1
+      } else {
+        // Streak broken - reset to 1
+        newStreak = 1
+      }
+    }
+    
+    // Update longest streak if needed
+    const newLongestStreak = Math.max(newStreak, longestStreak)
+
     await updateDoc(studentRef, {
       totalXP: currentXP + xpToAdd,
       lastActiveAt: Timestamp.now(),
+      currentStreak: newStreak,
+      longestStreak: newLongestStreak,
     })
   } catch (error) {
     console.error('Error updating student XP:', error)

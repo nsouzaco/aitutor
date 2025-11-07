@@ -10,6 +10,8 @@ import {
   doc,
   setDoc,
   getDocs,
+  getDoc,
+  updateDoc,
   query,
   where,
   orderBy,
@@ -24,6 +26,32 @@ import { updateStudentXP } from './progressService'
 import { getTopicsUnlockedBy } from './gatingService'
 import { getSubtopicById, getSubtopicName } from '../data/curriculum'
 import { v4 as uuidv4 } from 'uuid'
+
+/**
+ * Update attempt counters in student profile
+ */
+async function updateAttemptCounters(userId: string, isCorrect: boolean): Promise<void> {
+  try {
+    const studentRef = doc(db, 'students', userId)
+    const studentSnap = await getDoc(studentRef)
+    
+    if (!studentSnap.exists()) {
+      return
+    }
+    
+    const studentData = studentSnap.data()
+    const totalAttempts = (studentData.totalAttempts || 0) + 1
+    const totalCorrectAttempts = (studentData.totalCorrectAttempts || 0) + (isCorrect ? 1 : 0)
+    
+    await updateDoc(studentRef, {
+      totalAttempts,
+      totalCorrectAttempts,
+    })
+  } catch (error) {
+    console.error('Error updating attempt counters:', error)
+    // Don't throw - this is not critical
+  }
+}
 
 /**
  * Record a new attempt and calculate results
@@ -76,8 +104,11 @@ export async function recordAttempt(
       timeSpent
     )
 
-    // Update student's total XP
+    // Update student's total XP and streak
     await updateStudentXP(userId, xpResult.totalXP)
+    
+    // Update attempt counters
+    await updateAttemptCounters(userId, isCorrect)
 
     // Check if mastery was just achieved
     const masteryAchieved = !isAlreadyMastered && updatedProgress.mastered

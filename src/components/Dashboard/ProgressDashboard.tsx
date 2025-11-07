@@ -118,17 +118,20 @@ export function ProgressDashboard({ userId, onStartPractice }: ProgressDashboard
               onStartPractice={onStartPractice}
             />
 
-            {/* Mastery Progress */}
-            <MasteryProgress
-              masteryPercentage={dashboardData.masteryPercentage}
-              topicsMastered={dashboardData.topicsMastered}
-              totalTopics={dashboardData.totalTopics}
-              topicsInProgress={dashboardData.topicsInProgress}
-              topicsLocked={dashboardData.topicsLocked}
-            />
+            {/* Mastery Overview and Unit Progress - Side by Side */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Mastery Progress */}
+              <MasteryProgress
+                masteryPercentage={dashboardData.masteryPercentage}
+                topicsMastered={dashboardData.topicsMastered}
+                totalTopics={dashboardData.totalTopics}
+                topicsInProgress={dashboardData.topicsInProgress}
+                topicsLocked={dashboardData.topicsLocked}
+              />
 
-            {/* Unit Breakdown */}
-            <UnitBreakdown units={unitProgress} />
+              {/* Unit Breakdown */}
+              <UnitBreakdown units={unitProgress} />
+            </div>
           </div>
 
           {/* Right Column - Sidebar (1/3) */}
