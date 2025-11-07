@@ -21,7 +21,7 @@ export const refreshHeaderXP = () => {
   }
 }
 
-export default function Header({ currentView = 'tutor', onNewProblem, onLoadConversation, onNavigate, onXPUpdate }: HeaderProps) {
+export default function Header({ currentView = 'tutor', onNewProblem, onLoadConversation, onNavigate }: HeaderProps) {
   const { user } = useAuth()
   const [showHistory, setShowHistory] = useState(false)
   const [totalXP, setTotalXP] = useState(0)
