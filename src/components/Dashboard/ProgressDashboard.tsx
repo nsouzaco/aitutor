@@ -102,7 +102,6 @@ export function ProgressDashboard({ userId, onStartPractice }: ProgressDashboard
             totalXP={dashboardData.totalXP}
             weeklyXP={dashboardData.weeklyXP}
             monthlyXP={dashboardData.monthlyXP}
-            dailyAverageXP={dashboardData.dailyAverageXP}
             daysPracticedThisWeek={dashboardData.daysPracticedThisWeek}
             currentStreak={dashboardData.currentStreak}
             paceRating={paceRating}

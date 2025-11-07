@@ -8,7 +8,6 @@ interface StatsHeaderProps {
   totalXP: number
   weeklyXP: number
   monthlyXP: number
-  dailyAverageXP: number
   daysPracticedThisWeek: number
   currentStreak: number
   paceRating: {
@@ -22,7 +21,6 @@ export function StatsHeader({
   totalXP,
   weeklyXP,
   monthlyXP,
-  dailyAverageXP,
   daysPracticedThisWeek,
   currentStreak,
   paceRating,
