@@ -86,6 +86,15 @@ export async function recordAttempt(
     // Save attempt to Firestore
     const attemptRef = doc(db, 'students', userId, 'attempts', attemptId)
     
+    // ✅ Sanitize conversationHistory: Convert Date objects to Firestore Timestamps
+    // Firestore cannot save JavaScript Date objects directly
+    const sanitizedHistory = conversationHistory?.map(msg => ({
+      ...msg,
+      timestamp: msg.timestamp instanceof Date 
+        ? Timestamp.fromDate(msg.timestamp) 
+        : msg.timestamp,
+    }))
+    
     const attemptData = {
       attemptId,
       userId,
@@ -98,7 +107,7 @@ export async function recordAttempt(
       xpEarned: xpResult.totalXP,
       attemptedAt: Timestamp.now(),
       ...(problemImageUrl && { problemImageUrl }),
-      ...(conversationHistory && { conversationHistory }),
+      ...(sanitizedHistory && { conversationHistory: sanitizedHistory }),
     }
 
     await setDoc(attemptRef, attemptData)
