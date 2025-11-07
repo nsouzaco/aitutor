@@ -7,10 +7,12 @@ import { Whiteboard } from './components/Whiteboard'
 import { ProgressDashboard } from './components/Dashboard'
 import { TopicBrowser } from './components/Topics'
 import { XPFeedback } from './components/Practice'
+import { PlacementTest } from './components/Placement'
 import { useConversation, useAuth } from './contexts'
 import { usePracticeSession } from './hooks'
 import { sendMessage, extractTextFromImage } from './services/vercelApiService'
 import { initializeStudentProfile } from './services/progressService'
+import { hasCompletedPlacementTest } from './services/placementService'
 import {
   buildConversationContext,
   detectStuckResponse,
@@ -19,13 +21,14 @@ import {
 import { detectCorrectAnswer, detectIncorrectAnswer, isAskingQuestion } from './utils/answerDetection'
 import { generateProblemForSubtopic } from './utils/problemGenerator'
 
-type ViewMode = 'tutor' | 'dashboard' | 'topics'
+type ViewMode = 'tutor' | 'dashboard' | 'topics' | 'placement'
 
 function App() {
   const { user, loading: authLoading } = useAuth()
   const [showAuth, setShowAuth] = useState(false)
   const [currentView, setCurrentView] = useState<ViewMode>('tutor')
   const [currentSubtopicId, setCurrentSubtopicId] = useState<string | null>(null)
+  const [checkingPlacement, setCheckingPlacement] = useState(true)
   const {
     conversation,
     addMessage,
@@ -47,6 +50,38 @@ function App() {
       })
     }
   }, [user])
+
+  // Check if user has completed placement test
+  useEffect(() => {
+    async function checkPlacement() {
+      if (user?.uid) {
+        setCheckingPlacement(true)
+        try {
+          const completed = await hasCompletedPlacementTest(user.uid)
+          console.log('📋 [App] Placement test completed:', completed)
+          
+          // Redirect to placement if not completed
+          if (!completed) {
+            console.log('🔄 [App] Redirecting to placement test')
+            setCurrentView('placement')
+          }
+        } catch (error) {
+          console.error('❌ [App] Error checking placement:', error)
+        } finally {
+          setCheckingPlacement(false)
+        }
+      } else {
+        setCheckingPlacement(false)
+      }
+    }
+
+    checkPlacement()
+  }, [user])
+
+  const handlePlacementComplete = () => {
+    console.log('✅ [App] Placement test completed')
+    setCurrentView('dashboard') // Redirect to dashboard after placement
+  }
 
   // Auto-save conversation after each message
   useEffect(() => {
@@ -283,6 +318,14 @@ function App() {
     if (!user) return null
 
     switch (currentView) {
+      case 'placement':
+        return (
+          <PlacementTest
+            userId={user.uid}
+            onComplete={handlePlacementComplete}
+          />
+        )
+      
       case 'dashboard':
         return (
           <ProgressDashboard 
@@ -340,14 +383,22 @@ function App() {
     }
   }
 
+  // Don't show anything while checking placement or auth
+  if (authLoading || (user && checkingPlacement)) {
+    return <LoadingState />
+  }
+
   return (
     <div className="flex h-screen flex-col bg-white">
-      <Header 
-        currentView={currentView}
-        onNewProblem={hasMessages ? handleNewProblem : undefined}
-        onLoadConversation={handleLoadConversation}
-        onNavigate={handleNavigate}
-      />
+      {/* Hide header during placement test */}
+      {currentView !== 'placement' && (
+        <Header 
+          currentView={currentView}
+          onNewProblem={hasMessages ? handleNewProblem : undefined}
+          onLoadConversation={handleLoadConversation}
+          onNavigate={handleNavigate}
+        />
+      )}
       {renderView()}
       
       {/* XP Feedback Modal */}
