@@ -11,7 +11,7 @@
  * - Problem context
  */
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
 import { recordAttempt } from '../services/attemptService'
 import { AttemptResult } from '../types/attempt'
 import { useAuth } from './AuthContext'
@@ -41,6 +41,24 @@ export function PracticeSessionProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const [currentSession, setCurrentSession] = useState<PracticeSession | null>(null)
   const [lastAttemptResult, setLastAttemptResult] = useState<AttemptResult | null>(null)
+
+  // 🔍 DEBUG: Track when provider mounts/unmounts
+  useEffect(() => {
+    console.log('🏗️ [PracticeSessionProvider] MOUNTED')
+    return () => {
+      console.log('💥 [PracticeSessionProvider] UNMOUNTED - ALL STATE WILL BE LOST')
+    }
+  }, [])
+  
+  // 🔍 DEBUG: Track all state changes to currentSession
+  useEffect(() => {
+    console.log('📊 [PracticeSessionProvider] currentSession changed:', {
+      isActive: currentSession !== null,
+      subtopicId: currentSession?.subtopicId || 'null',
+      timestamp: new Date().toISOString(),
+      stackTrace: new Error().stack?.split('\n').slice(2, 5).join('\n') || 'no trace'
+    })
+  }, [currentSession])
 
   /**
    * Start a new practice session for a specific subtopic
