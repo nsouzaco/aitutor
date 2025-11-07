@@ -26,10 +26,8 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
             Sparkie
           </h1>
           {/* Small Sparkie 3D icon */}
-          <span className="absolute -top-8 -right-4 md:-top-10 md:-right-6 z-0">
-            <div className="h-20 w-20 md:h-24 md:w-24">
-              <SparkieIcon3D />
-            </div>
+          <span className="absolute top-0  right-0 -translate-y-[44%] translate-x-[49%] z-0">
+            <SparkieIcon3D size="small" />
           </span>
         </div>
 

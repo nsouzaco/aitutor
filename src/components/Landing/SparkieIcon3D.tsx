@@ -7,9 +7,19 @@ function Model() {
   return <primitive object={scene} scale={1.5} />
 }
 
-export default function SparkieIcon3D() {
+interface SparkieIcon3DProps {
+  size?: 'small' | 'medium' | 'large'
+}
+
+export default function SparkieIcon3D({ size = 'large' }: SparkieIcon3DProps) {
+  const sizeClasses = {
+    small: 'h-30 w-30 md:h-30 md:w-30',
+    medium: 'h-32 w-32 md:h-40 md:w-40',
+    large: 'h-48 w-48 md:h-64 md:w-64',
+  }
+
   return (
-    <div className="h-48 w-48 md:h-64 md:w-64">
+    <div className={sizeClasses[size]}>
       <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
         <Suspense fallback={null}>
           <ambientLight intensity={1.5} />
