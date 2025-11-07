@@ -93,8 +93,14 @@ export function usePracticeSession(userId: string | null) {
       console.log('✅ [Practice] Attempt recorded:', result)
       setLastAttemptResult(result)
       
-      // Clear session after recording
-      setCurrentSession(null)
+      // Only clear session if answer was correct (problem solved)
+      // Keep session active for incorrect attempts so student can keep trying
+      if (isCorrect) {
+        console.log('✅ [Practice] Correct answer - ending session')
+        setCurrentSession(null)
+      } else {
+        console.log('⏳ [Practice] Incorrect answer - keeping session active for retry')
+      }
       
       return result
     } catch (error) {
