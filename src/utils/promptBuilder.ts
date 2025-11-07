@@ -8,14 +8,16 @@ import { SOCRATIC_SYSTEM_PROMPT } from '../constants'
  * @param messages - Array of conversation messages
  * @param stuckCount - Number of times student has been stuck
  * @param isWhiteboardEvaluation - Whether the last message is a whiteboard evaluation
+ * @param subtopicContext - Optional subtopic context (difficulty, topic name, etc.)
  */
 export function buildConversationContext(
   messages: Message[],
   stuckCount: number = 0,
-  isWhiteboardEvaluation: boolean = false
+  isWhiteboardEvaluation: boolean = false,
+  subtopicContext?: string | null
 ): ChatMessage[] {
   // Start with system prompt
-  const systemPrompt = buildSystemPrompt(stuckCount, isWhiteboardEvaluation)
+  const systemPrompt = buildSystemPrompt(stuckCount, isWhiteboardEvaluation, subtopicContext)
   
   const contextMessages: ChatMessage[] = [
     {
@@ -41,8 +43,13 @@ export function buildConversationContext(
  * Build system prompt with hint level guidance based on stuck count
  * @param stuckCount - Number of times student has been stuck
  * @param isWhiteboardEvaluation - Whether this is a whiteboard evaluation (student sharing work)
+ * @param subtopicContext - Optional subtopic context (difficulty, topic name, etc.)
  */
-function buildSystemPrompt(stuckCount: number, isWhiteboardEvaluation: boolean = false): string {
+function buildSystemPrompt(
+  stuckCount: number, 
+  isWhiteboardEvaluation: boolean = false,
+  subtopicContext?: string | null
+): string {
   let hintGuidance = ''
   
   // Special guidance for whiteboard evaluations
@@ -68,7 +75,13 @@ When a student shares their work (drawing, equation, or solution steps):
     hintGuidance += `\n\nNOTE: The student may be uncertain. Consider providing a gentle hint if needed, but try a clarifying question first.`
   }
 
-  return SOCRATIC_SYSTEM_PROMPT + hintGuidance
+  // Add subtopic context if provided
+  let subtopicGuidance = ''
+  if (subtopicContext) {
+    subtopicGuidance = `\n\n=== PRACTICE SESSION CONTEXT ===\n${subtopicContext}\n=== END CONTEXT ===`
+  }
+
+  return SOCRATIC_SYSTEM_PROMPT + subtopicGuidance + hintGuidance
 }
 
 /**

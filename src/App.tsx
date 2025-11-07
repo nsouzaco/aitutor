@@ -18,7 +18,7 @@ import {
   detectCelebration,
 } from './utils/promptBuilder'
 import { detectCorrectAnswer, detectIncorrectAnswer, isAskingQuestion, stripValidationMarkers } from './utils/answerDetection'
-import { generateProblemForSubtopic } from './utils/problemGenerator'
+import { generateProblemForSubtopic, getSubtopicContext } from './utils/problemGenerator'
 import { getSubtopicById } from './data/curriculum'
 
 type ViewMode = 'tutor' | 'dashboard' | 'topics' | 'placement'
@@ -358,6 +358,13 @@ function App() {
                                content.toLowerCase().includes('what do you think') ||
                                (!!imageUrl && content.toLowerCase().includes('evaluate'))
       
+      // Get subtopic context for AI if we're in a practice session
+      const subtopicContext = activeSubtopicId 
+        ? getSubtopicContext(activeSubtopicId) 
+        : null
+      
+      console.log('📚 [App] Subtopic context for AI:', subtopicContext ? 'Added' : 'None')
+      
       // Build conversation context with current stuck count and whiteboard evaluation flag
       const messages = buildConversationContext(
         [...conversation.messages, {
@@ -367,7 +374,8 @@ function App() {
           timestamp: new Date(),
         }],
         conversation.stuckCount,
-        isWhiteboardEval
+        isWhiteboardEval,
+        subtopicContext  // ✅ Pass subtopic context to AI
       )
 
       // Get response from OpenAI
