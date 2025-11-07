@@ -18,7 +18,7 @@ import {
   detectStuckResponse,
   detectCelebration,
 } from './utils/promptBuilder'
-import { detectCorrectAnswer, detectIncorrectAnswer, isAskingQuestion } from './utils/answerDetection'
+import { detectCorrectAnswer, detectIncorrectAnswer, isAskingQuestion, stripValidationMarkers } from './utils/answerDetection'
 import { generateProblemForSubtopic } from './utils/problemGenerator'
 
 type ViewMode = 'tutor' | 'dashboard' | 'topics' | 'placement'
@@ -148,8 +148,9 @@ function App() {
     if (problem) {
       console.log('📝 [App] Auto-generated problem:', problem)
       // Wait a brief moment for view to switch, then send the problem
+      // Pass subtopicId directly to avoid state timing issues
       setTimeout(() => {
-        handleSendMessage(problem)
+        handleSendMessage(problem, undefined, subtopicId)
       }, 100)
     }
   }
@@ -164,25 +165,35 @@ function App() {
     await handleSendMessage('Here is my work. What do you think?', imageDataUrl)
   }
 
-  const handleSendMessage = async (content: string, imageUrl?: string) => {
+  const handleSendMessage = async (content: string, imageUrl?: string, explicitSubtopicId?: string) => {
     let messageContent = content
+    
+    // Use explicit subtopicId if provided (from handleStartPractice), otherwise use state
+    const activeSubtopicId = explicitSubtopicId || currentSubtopicId
     
     // Start practice session if this is the first message and subtopic is selected
     console.log('🔍 [App] Check practice session start:', {
       messagesLength: conversation.messages.length,
       currentSubtopicId,
+      explicitSubtopicId,
+      activeSubtopicId,
       isActive: practiceSession.isActive
     })
     
-    if (conversation.messages.length === 0 && currentSubtopicId && !practiceSession.isActive) {
-      console.log('🎯 [App] Starting practice session for subtopic:', currentSubtopicId)
-      practiceSession.startSession(currentSubtopicId, content, imageUrl)
+    if (conversation.messages.length === 0 && activeSubtopicId && !practiceSession.isActive) {
+      console.log('🎯 [App] Starting practice session for subtopic:', activeSubtopicId)
+      practiceSession.startSession(activeSubtopicId, content, imageUrl)
       console.log('✅ [App] Practice session started successfully')
+      
+      // Update state to match
+      if (explicitSubtopicId) {
+        setCurrentSubtopicId(explicitSubtopicId)
+      }
     } else {
       if (conversation.messages.length > 0) {
         console.log('⏭️ [App] Not first message, session should already be started')
       }
-      if (!currentSubtopicId) {
+      if (!activeSubtopicId) {
         console.warn('⚠️ [App] No subtopic selected - XP will not be tracked!')
       }
       if (practiceSession.isActive) {
@@ -268,14 +279,21 @@ function App() {
       // Get response from OpenAI
       const response = await sendMessage({ messages })
 
-      // Check if this is a celebration moment
-      const isCelebration = detectCelebration(response)
+      // Detect answer validation BEFORE stripping markers
+      const isCorrectAnswer = detectCorrectAnswer(response)
+      const isIncorrectAnswer = detectIncorrectAnswer(response)
 
-      // Add AI response
-      addMessage(response, 'assistant', isCelebration ? 'celebration' : undefined)
+      // Strip validation markers from response for display
+      const displayResponse = stripValidationMarkers(response)
+
+      // Check if this is a celebration moment
+      const isCelebration = detectCelebration(displayResponse)
+
+      // Add AI response (with markers stripped)
+      addMessage(displayResponse, 'assistant', isCelebration ? 'celebration' : undefined)
 
       // Track hints (Socratic questions count as hints)
-      if (practiceSession.isActive && isAskingQuestion(response)) {
+      if (practiceSession.isActive && isAskingQuestion(displayResponse)) {
         practiceSession.useHint()
         console.log('💡 [App] Hint detected in AI response')
       }
@@ -286,22 +304,19 @@ function App() {
       
       if (practiceSession.isActive) {
         console.log('🔍 [App] Checking AI response for answer detection...')
-        console.log('📝 [App] AI Response:', response.substring(0, 100))
-        console.log('📝 [App] Full AI Response:', response)
+        console.log('📝 [App] AI Response (with markers):', response.substring(0, 100))
+        console.log('📝 [App] Display Response (markers stripped):', displayResponse.substring(0, 100))
         
-        const isCorrect = detectCorrectAnswer(response)
-        const isIncorrect = detectIncorrectAnswer(response)
+        console.log(`🎯 [App] Detection results - Correct: ${isCorrectAnswer}, Incorrect: ${isIncorrectAnswer}`)
         
-        console.log(`🎯 [App] Detection results - Correct: ${isCorrect}, Incorrect: ${isIncorrect}`)
-        
-        if (isCorrect || isIncorrect) {
-          console.log(`${isCorrect ? '✅' : '❌'} [App] Answer detected as ${isCorrect ? 'correct' : 'incorrect'}`)
+        if (isCorrectAnswer || isIncorrectAnswer) {
+          console.log(`${isCorrectAnswer ? '✅' : '❌'} [App] Answer detected as ${isCorrectAnswer ? 'correct' : 'incorrect'}`)
           console.log(`📝 [App] Submitting attempt for message: "${messageContent}"`)
           
           // Record the attempt
           const attemptResult = await practiceSession.submitAttempt(
             messageContent,
-            isCorrect,
+            isCorrectAnswer,
             conversation.messages
           )
           

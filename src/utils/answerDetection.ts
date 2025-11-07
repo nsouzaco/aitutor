@@ -2,12 +2,21 @@
  * Answer Detection Utilities
  * 
  * Detect when AI confirms a correct answer or identifies an incorrect one
+ * Uses explicit markers from the system prompt for reliability
  */
 
 /**
  * Detect if AI's response indicates a correct answer
+ * Looks for [CORRECT] marker first, then falls back to pattern matching
  */
 export function detectCorrectAnswer(aiResponse: string): boolean {
+  // Primary detection: Look for [CORRECT] marker
+  if (aiResponse.includes('[CORRECT]')) {
+    console.log('✅ [Detection] Found [CORRECT] marker')
+    return true
+  }
+  
+  // Fallback: Pattern matching for cases where marker isn't used
   const correctPatterns = [
     /that'?s?\s+(absolutely\s+)?correct/i,
     /you'?re\s+(absolutely\s+)?right/i,
@@ -32,13 +41,13 @@ export function detectCorrectAnswer(aiResponse: string): boolean {
   const matches = correctPatterns.some(pattern => {
     const isMatch = pattern.test(aiResponse)
     if (isMatch) {
-      console.log('✅ [Detection] Matched pattern:', pattern, 'in response:', aiResponse.substring(0, 100))
+      console.log('✅ [Detection] Matched fallback pattern:', pattern)
     }
     return isMatch
   })
   
   if (!matches) {
-    console.log('❌ [Detection] No correct answer pattern matched in:', aiResponse.substring(0, 100))
+    console.log('❌ [Detection] No correct answer indicator found in:', aiResponse.substring(0, 100))
   }
   
   return matches
@@ -46,8 +55,16 @@ export function detectCorrectAnswer(aiResponse: string): boolean {
 
 /**
  * Detect if AI's response indicates an incorrect answer
+ * Looks for [INCORRECT] marker first, then falls back to pattern matching
  */
 export function detectIncorrectAnswer(aiResponse: string): boolean {
+  // Primary detection: Look for [INCORRECT] marker
+  if (aiResponse.includes('[INCORRECT]')) {
+    console.log('❌ [Detection] Found [INCORRECT] marker')
+    return true
+  }
+  
+  // Fallback: Pattern matching
   const incorrectPatterns = [
     /not\s+(quite|exactly)/i,
     /that'?s\s+not\s+(correct|right)/i,
@@ -59,7 +76,13 @@ export function detectIncorrectAnswer(aiResponse: string): boolean {
     /hmm,?\s+not\s+quite/i,
   ]
 
-  return incorrectPatterns.some(pattern => pattern.test(aiResponse))
+  const matches = incorrectPatterns.some(pattern => pattern.test(aiResponse))
+  
+  if (matches) {
+    console.log('❌ [Detection] Matched fallback incorrect pattern')
+  }
+  
+  return matches
 }
 
 /**
@@ -82,5 +105,16 @@ export function extractHint(aiResponse: string): string | null {
     return aiResponse
   }
   return null
+}
+
+/**
+ * Remove validation markers from AI response for display
+ * Strips [CORRECT] and [INCORRECT] markers
+ */
+export function stripValidationMarkers(aiResponse: string): string {
+  return aiResponse
+    .replace(/\[CORRECT\]\s*/gi, '')
+    .replace(/\[INCORRECT\]\s*/gi, '')
+    .trim()
 }
 
