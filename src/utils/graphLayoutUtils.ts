@@ -13,8 +13,8 @@ import { StudentProgress } from '../types/progress'
 // Node dimensions for layout calculations
 const NODE_WIDTH = 220
 const NODE_HEIGHT = 100
-const HORIZONTAL_SPACING = 280
-const VERTICAL_SPACING = 140
+const HORIZONTAL_SPACING = 320 // Space between prerequisite levels
+const VERTICAL_SPACING = 130 // Space between nodes vertically
 const UNIT_VERTICAL_SPACING = 80
 
 /**
@@ -152,44 +152,48 @@ export function convertCurriculumToReactFlow(
 
 /**
  * Calculate hierarchical layout positions for nodes
- * Organizes by difficulty level and prerequisite dependencies
+ * Organizes topics horizontally and by prerequisite depth vertically
  */
 export function calculateHierarchicalLayout(): Record<string, { x: number; y: number }> {
   const positions: Record<string, { x: number; y: number }> = {}
 
-  // Group by unit
-  let currentUnitY = 0
-
-  CURRICULUM.units.forEach((unit) => {
-    // Collect all subtopics in this unit
-    const unitSubtopics: Subtopic[] = []
+  // Collect all topics across all units with their subtopics
+  const allTopics: { topic: any; subtopics: Subtopic[] }[] = []
+  CURRICULUM.units.forEach(unit => {
     unit.topics.forEach(topic => {
-      unitSubtopics.push(...topic.subtopics)
+      allTopics.push({ topic, subtopics: topic.subtopics })
     })
+  })
 
-    // Calculate depth (level) for each subtopic based on prerequisites
-    const depths = calculateSubtopicDepths(unitSubtopics)
-    const maxDepth = Math.max(...Object.values(depths))
-
-    // Group by depth (column)
-    const columns: Subtopic[][] = []
+  // Calculate horizontal spacing between topics
+  const TOPIC_HORIZONTAL_SPACING = 450 // Space between different topics
+  
+  let currentTopicX = 0
+  
+  allTopics.forEach(({ topic, subtopics }) => {
+    // Calculate depth (prerequisite level) for subtopics within this topic
+    const depths = calculateSubtopicDepths(subtopics)
+    const maxDepth = Math.max(...Object.values(depths), 0)
+    
+    // Group subtopics by depth (vertical layers)
+    const layers: Subtopic[][] = []
     for (let d = 0; d <= maxDepth; d++) {
-      columns[d] = unitSubtopics.filter(sub => depths[sub.id] === d)
+      layers[d] = subtopics.filter(sub => depths[sub.id] === d)
     }
-
-    // Position nodes
-    columns.forEach((column, colIndex) => {
-      column.forEach((subtopic, rowIndex) => {
-        const x = colIndex * HORIZONTAL_SPACING
-        const y = currentUnitY + rowIndex * VERTICAL_SPACING
-
+    
+    // Position nodes for this topic
+    layers.forEach((layer, layerIndex) => {
+      layer.forEach((subtopic, indexInLayer) => {
+        const x = currentTopicX + layerIndex * HORIZONTAL_SPACING
+        const y = indexInLayer * VERTICAL_SPACING
+        
         positions[subtopic.id] = { x, y }
       })
     })
-
-    // Update Y for next unit
-    const maxRowsInUnit = Math.max(...columns.map(col => col.length))
-    currentUnitY += maxRowsInUnit * VERTICAL_SPACING + UNIT_VERTICAL_SPACING
+    
+    // Move to next topic column
+    // Width is based on max depth (number of columns needed)
+    currentTopicX += (maxDepth + 1) * HORIZONTAL_SPACING + TOPIC_HORIZONTAL_SPACING
   })
 
   return positions
