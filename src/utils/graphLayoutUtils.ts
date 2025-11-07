@@ -15,7 +15,6 @@ const NODE_WIDTH = 220
 const NODE_HEIGHT = 100
 const HORIZONTAL_SPACING = 320 // Space between prerequisite levels
 const VERTICAL_SPACING = 130 // Space between nodes vertically
-const UNIT_VERTICAL_SPACING = 80
 
 /**
  * Color scheme for node states
@@ -158,10 +157,10 @@ export function calculateHierarchicalLayout(): Record<string, { x: number; y: nu
   const positions: Record<string, { x: number; y: number }> = {}
 
   // Collect all topics across all units with their subtopics
-  const allTopics: { topic: any; subtopics: Subtopic[] }[] = []
+  const allTopics: Subtopic[][] = []
   CURRICULUM.units.forEach(unit => {
     unit.topics.forEach(topic => {
-      allTopics.push({ topic, subtopics: topic.subtopics })
+      allTopics.push(topic.subtopics)
     })
   })
 
@@ -170,7 +169,7 @@ export function calculateHierarchicalLayout(): Record<string, { x: number; y: nu
   
   let currentTopicX = 0
   
-  allTopics.forEach(({ topic, subtopics }) => {
+  allTopics.forEach((subtopics) => {
     // Calculate depth (prerequisite level) for subtopics within this topic
     const depths = calculateSubtopicDepths(subtopics)
     const maxDepth = Math.max(...Object.values(depths), 0)
