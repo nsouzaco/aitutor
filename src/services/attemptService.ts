@@ -41,10 +41,16 @@ export async function recordAttempt(
 ): Promise<AttemptResult> {
   try {
     const attemptId = uuidv4()
+    
+    // Validate subtopicId
+    if (!subtopicId) {
+      throw new Error('subtopicId is required')
+    }
+    
     const subtopic = getSubtopicById(subtopicId)
     
     if (!subtopic) {
-      throw new Error('Subtopic not found')
+      throw new Error(`Subtopic not found: ${subtopicId}`)
     }
 
     // Get current progress to determine if already mastered
@@ -86,14 +92,25 @@ export async function recordAttempt(
     // Save attempt to Firestore
     const attemptRef = doc(db, 'students', userId, 'attempts', attemptId)
     
-    // ✅ Sanitize conversationHistory: Convert Date objects to Firestore Timestamps
-    // Firestore cannot save JavaScript Date objects directly
-    const sanitizedHistory = conversationHistory?.map(msg => ({
-      ...msg,
-      timestamp: msg.timestamp instanceof Date 
-        ? Timestamp.fromDate(msg.timestamp) 
-        : msg.timestamp,
-    }))
+    // ✅ Sanitize conversationHistory: 
+    // 1. Convert Date objects to Firestore Timestamps
+    // 2. Remove undefined values (Firestore rejects them)
+    const sanitizedHistory = conversationHistory?.map(msg => {
+      const sanitized: any = {
+        id: msg.id,
+        sender: msg.sender,
+        content: msg.content,
+        timestamp: msg.timestamp instanceof Date 
+          ? Timestamp.fromDate(msg.timestamp) 
+          : msg.timestamp,
+      }
+      
+      // Only add optional fields if they have actual values (not undefined)
+      if (msg.type !== undefined) sanitized.type = msg.type
+      if (msg.imageUrl !== undefined) sanitized.imageUrl = msg.imageUrl
+      
+      return sanitized
+    })
     
     const attemptData = {
       attemptId,

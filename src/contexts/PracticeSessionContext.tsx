@@ -17,7 +17,7 @@ import { AttemptResult } from '../types/attempt'
 import { useAuth } from './AuthContext'
 
 interface PracticeSession {
-  subtopicId: string | null
+  subtopicId: string  // Always required when session is active
   problemText: string
   startTime: Date
   hintsUsed: number
@@ -110,7 +110,7 @@ export function PracticeSessionProvider({ children }: { children: ReactNode }) {
     try {
       const result = await recordAttempt(
         userId,
-        currentSession.subtopicId!,
+        currentSession.subtopicId,  // Now guaranteed to be non-null
         currentSession.problemText,
         studentResponse,
         isCorrect,
