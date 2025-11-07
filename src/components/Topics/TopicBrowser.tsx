@@ -3,8 +3,7 @@
  */
 
 import { useState, useEffect } from 'react'
-import { List, Network, Loader2, Filter } from 'lucide-react'
-import { KnowledgeGraph } from './KnowledgeGraph'
+import { Loader2, Filter } from 'lucide-react'
 import { TopicCard } from './TopicCard'
 import { CURRICULUM } from '../../data/curriculum'
 import { getAllSubtopicsWithStatus, getLockedReason } from '../../services/gatingService'
@@ -17,14 +16,9 @@ interface TopicBrowserProps {
   onStartPractice?: (subtopicId: string) => void
 }
 
-type ViewMode = 'list' | 'graph'
 type FilterMode = 'all' | 'available' | 'mastered' | 'in-progress'
 
 export function TopicBrowser({ userId, onStartPractice }: TopicBrowserProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    // Load from localStorage
-    return (localStorage.getItem('topicBrowserView') as ViewMode) || 'list'
-  })
   const [filterMode, setFilterMode] = useState<FilterMode>('all')
   const [loading, setLoading] = useState(true)
   const [topics, setTopics] = useState<Array<{ subtopic: Subtopic; status: SubtopicStatus }>>([])
@@ -34,11 +28,6 @@ export function TopicBrowser({ userId, onStartPractice }: TopicBrowserProps) {
   useEffect(() => {
     loadTopics()
   }, [userId])
-
-  useEffect(() => {
-    // Save view preference
-    localStorage.setItem('topicBrowserView', viewMode)
-  }, [viewMode])
 
   const loadTopics = async () => {
     try {
@@ -111,33 +100,7 @@ export function TopicBrowser({ userId, onStartPractice }: TopicBrowserProps) {
         </div>
 
         {/* Controls */}
-        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-          {/* View Toggle */}
-          <div className="flex items-center space-x-2 bg-white rounded-lg border border-gray-200 p-1">
-            <button
-              onClick={() => setViewMode('list')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-                viewMode === 'list'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <List className="w-4 h-4" />
-              <span className="text-sm font-medium">List</span>
-            </button>
-            <button
-              onClick={() => setViewMode('graph')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-                viewMode === 'graph'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <Network className="w-4 h-4" />
-              <span className="text-sm font-medium">Graph</span>
-            </button>
-          </div>
-
+        <div className="flex items-center justify-end mb-6">
           {/* Filter */}
           <div className="flex items-center space-x-2">
             <Filter className="w-4 h-4 text-gray-400" />
@@ -155,45 +118,38 @@ export function TopicBrowser({ userId, onStartPractice }: TopicBrowserProps) {
         </div>
 
         {/* Content */}
-        {viewMode === 'graph' ? (
-          <KnowledgeGraph
-            userProgress={userProgress}
-            onNodeClick={(subtopicId) => onStartPractice?.(subtopicId)}
-          />
-        ) : (
-          <div className="space-y-8">
-            {groupedByUnit.map(({ unit, topics }) => {
-              if (topics.length === 0) return null
+        <div className="space-y-8">
+          {groupedByUnit.map(({ unit, topics }) => {
+            if (topics.length === 0) return null
 
-              return (
-                <div key={unit.id}>
-                  <div className="mb-4">
-                    <h2 className="text-2xl font-bold text-gray-900">{unit.name}</h2>
-                    <p className="text-gray-600 text-sm mt-1">{unit.description}</p>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {topics.map(({ subtopic, status }) => (
-                      <TopicCard
-                        key={subtopic.id}
-                        topic={{
-                          ...subtopic,
-                          status,
-                          masteryScore: userProgress?.subtopics[subtopic.id]?.masteryScore || 0,
-                          attemptCount: userProgress?.subtopics[subtopic.id]?.attemptCount || 0,
-                          correctCount: userProgress?.subtopics[subtopic.id]?.correctCount || 0,
-                          lastAttemptedAt: userProgress?.subtopics[subtopic.id]?.lastAttemptedAt,
-                        }}
-                        isLocked={status === 'locked'}
-                        lockedReason={lockedReasons[subtopic.id]}
-                        onStartPractice={() => onStartPractice?.(subtopic.id)}
-                      />
-                    ))}
-                  </div>
+            return (
+              <div key={unit.id}>
+                <div className="mb-4">
+                  <h2 className="text-2xl font-bold text-gray-900">{unit.name}</h2>
+                  <p className="text-gray-600 text-sm mt-1">{unit.description}</p>
                 </div>
-              )
-            })}
-          </div>
-        )}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {topics.map(({ subtopic, status }) => (
+                    <TopicCard
+                      key={subtopic.id}
+                      topic={{
+                        ...subtopic,
+                        status,
+                        masteryScore: userProgress?.subtopics[subtopic.id]?.masteryScore || 0,
+                        attemptCount: userProgress?.subtopics[subtopic.id]?.attemptCount || 0,
+                        correctCount: userProgress?.subtopics[subtopic.id]?.correctCount || 0,
+                        lastAttemptedAt: userProgress?.subtopics[subtopic.id]?.lastAttemptedAt,
+                      }}
+                      isLocked={status === 'locked'}
+                      lockedReason={lockedReasons[subtopic.id]}
+                      onStartPractice={() => onStartPractice?.(subtopic.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>
   )

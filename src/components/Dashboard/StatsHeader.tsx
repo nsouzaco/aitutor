@@ -44,13 +44,13 @@ export function StatsHeader({
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total XP */}
-        <div className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg border border-purple-200">
+        <div className="flex items-center space-x-3 p-4 bg-orange-50 rounded-lg border border-orange-300">
           <div className="flex-shrink-0">
-            <Star className="w-8 h-8 text-purple-600" />
+            <Star className="w-8 h-8 text-orange-600 fill-orange-600" />
           </div>
           <div>
-            <p className="text-sm text-purple-600 font-medium">Total XP</p>
-            <p className="text-2xl font-bold text-purple-900">{totalXP.toLocaleString()}</p>
+            <p className="text-sm text-orange-600 font-medium">Total XP</p>
+            <p className="text-2xl font-bold text-orange-900">{totalXP.toLocaleString()}</p>
           </div>
         </div>
 
