@@ -6,9 +6,6 @@
 import { useCallback, useMemo } from 'react'
 import ReactFlow, {
   Node,
-  Controls,
-  MiniMap,
-  Background,
   useNodesState,
   useEdgesState,
   ConnectionLineType,
@@ -45,7 +42,7 @@ export function KnowledgeGraph({ userProgress, onNodeClick }: KnowledgeGraphProp
   )
 
   return (
-    <div className="w-full h-[600px] bg-white rounded-lg border border-gray-200 shadow-sm">
+    <div className="w-full h-[700px] rounded-lg overflow-hidden">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -54,32 +51,20 @@ export function KnowledgeGraph({ userProgress, onNodeClick }: KnowledgeGraphProp
         onNodeClick={handleNodeClick}
         connectionLineType={ConnectionLineType.SmoothStep}
         fitView
-        minZoom={0.5}
-        maxZoom={1.5}
+        minZoom={1}
+        maxZoom={1}
+        zoomOnScroll={false}
+        zoomOnPinch={false}
+        zoomOnDoubleClick={false}
+        panOnDrag={true}
+        panOnScroll={true}
+        preventScrolling={false}
         defaultEdgeOptions={{
           type: 'smoothstep',
           animated: false,
         }}
       >
-        <Background />
-        <Controls />
-        <MiniMap
-          nodeColor={(node) => {
-            const status = node.data?.status
-            switch (status) {
-              case 'mastered':
-                return '#10b981'
-              case 'in-progress':
-                return '#fbbf24'
-              case 'locked':
-                return '#f3f4f6'
-              default:
-                return '#ffffff'
-            }
-          }}
-          maskColor="rgba(0, 0, 0, 0.1)"
-        />
-        <Panel position="top-right" className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 m-4">
+        <Panel position="top-right" className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-4 m-4">
           <Legend />
         </Panel>
       </ReactFlow>

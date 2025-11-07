@@ -11,11 +11,11 @@ import { CURRICULUM, getAllSubtopics } from '../data/curriculum'
 import { StudentProgress } from '../types/progress'
 
 // Node dimensions for layout calculations
-const NODE_WIDTH = 180
-const NODE_HEIGHT = 80
-const HORIZONTAL_SPACING = 250
-const VERTICAL_SPACING = 120
-const UNIT_VERTICAL_SPACING = 200
+const NODE_WIDTH = 220
+const NODE_HEIGHT = 100
+const HORIZONTAL_SPACING = 280
+const VERTICAL_SPACING = 140
+const UNIT_VERTICAL_SPACING = 80
 
 /**
  * Color scheme for node states
@@ -110,12 +110,13 @@ export function convertCurriculumToReactFlow(
       style: {
         background: colors.bg,
         color: colors.text,
-        border: `2px solid ${colors.border}`,
-        borderRadius: '8px',
-        padding: '10px',
+        border: `3px solid ${colors.border}`,
+        borderRadius: '12px',
+        padding: '16px',
         width: NODE_WIDTH,
-        fontSize: '12px',
-        fontWeight: 500,
+        fontSize: '14px',
+        fontWeight: 600,
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
       },
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
@@ -132,12 +133,14 @@ export function convertCurriculumToReactFlow(
         type: 'smoothstep',
         animated: false,
         style: {
-          stroke: '#9ca3af',
-          strokeWidth: 2,
+          stroke: '#6b7280',
+          strokeWidth: 3,
         },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: '#9ca3af',
+          color: '#6b7280',
+          width: 20,
+          height: 20,
         },
       })
     })
