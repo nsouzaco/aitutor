@@ -93,7 +93,7 @@ export function KnowledgeFrontier({ recommendedTopic, onStartPractice }: Knowled
       {/* CTA Button */}
       <button
         onClick={() => onStartPractice?.(recommendedTopic.id)}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2 group"
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-full transition-colors flex items-center justify-center space-x-2 group shadow-md hover:shadow-lg"
       >
         <span>{isInProgress ? 'Continue Practice' : 'Start Practice'}</span>
         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

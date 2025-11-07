@@ -146,6 +146,10 @@ async function calculateXPStats(
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
+    console.log('📊 [XP Calculation] Now:', now)
+    console.log('📊 [XP Calculation] 7 days ago:', sevenDaysAgo)
+    console.log('📊 [XP Calculation] Total attempts in DB:', attemptsSnap.size)
+
     let weeklyXP = 0
     let monthlyXP = 0
     const uniqueDaysThisWeek = new Set<string>()
@@ -154,6 +158,13 @@ async function calculateXPStats(
       const data = doc.data()
       const attemptDate = data.attemptedAt.toDate()
       const xp = data.xpEarned || 0
+
+      console.log('📊 [XP Calculation] Attempt:', {
+        attemptDate,
+        xp,
+        isWithinWeek: attemptDate >= sevenDaysAgo,
+        isWithinMonth: attemptDate >= thirtyDaysAgo,
+      })
 
       if (attemptDate >= sevenDaysAgo) {
         weeklyXP += xp
@@ -164,6 +175,13 @@ async function calculateXPStats(
       if (attemptDate >= thirtyDaysAgo) {
         monthlyXP += xp
       }
+    })
+
+    console.log('📊 [XP Calculation] Results:', { 
+      weeklyXP, 
+      monthlyXP,
+      daysPracticedThisWeek: uniqueDaysThisWeek.size,
+      uniqueDays: Array.from(uniqueDaysThisWeek)
     })
 
     return { 

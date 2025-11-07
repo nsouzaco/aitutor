@@ -110,34 +110,31 @@ export function ProgressDashboard({ userId, onStartPractice }: ProgressDashboard
 
         {/* Main Content */}
         <div className="space-y-6">
-          {/* Knowledge Frontier */}
-          <KnowledgeFrontier
-            recommendedTopic={recommendedTopic}
-            onStartPractice={onStartPractice}
-          />
-
-          {/* Three Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Row 2: Mastery Overview and Unit Progress side by side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Mastery Progress */}
-            <div className="lg:col-span-1">
-              <MasteryProgress
-                masteryPercentage={dashboardData.masteryPercentage}
-                topicsMastered={dashboardData.topicsMastered}
-                totalTopics={dashboardData.totalTopics}
-                topicsInProgress={dashboardData.topicsInProgress}
-                topicsLocked={dashboardData.topicsLocked}
-              />
-            </div>
+            <MasteryProgress
+              masteryPercentage={dashboardData.masteryPercentage}
+              topicsMastered={dashboardData.topicsMastered}
+              totalTopics={dashboardData.totalTopics}
+              topicsInProgress={dashboardData.topicsInProgress}
+              topicsLocked={dashboardData.topicsLocked}
+            />
 
             {/* Unit Breakdown */}
-            <div className="lg:col-span-1">
-              <UnitBreakdown units={unitProgress} />
-            </div>
+            <UnitBreakdown units={unitProgress} />
+          </div>
 
-            {/* Recent Activity */}
-            <div className="lg:col-span-1">
-              <RecentActivity userId={userId} />
-            </div>
+          {/* Row 3: Recommended Next and History side by side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Knowledge Frontier */}
+            <KnowledgeFrontier
+              recommendedTopic={recommendedTopic}
+              onStartPractice={onStartPractice}
+            />
+
+            {/* Recent Activity (History) */}
+            <RecentActivity userId={userId} />
           </div>
         </div>
       </div>

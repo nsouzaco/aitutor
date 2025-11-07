@@ -58,7 +58,7 @@ export function RecentActivity({ userId }: RecentActivityProps) {
   if (loading) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Conversations</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">History</h2>
         <div className="text-center py-8">
           <Clock className="w-8 h-8 text-gray-300 mx-auto mb-2 animate-spin" />
           <p className="text-sm text-gray-400">Loading...</p>
@@ -70,7 +70,7 @@ export function RecentActivity({ userId }: RecentActivityProps) {
   if (conversations.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Conversations</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">History</h2>
         <div className="text-center py-8">
           <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <p className="text-gray-500">No conversations yet</p>
@@ -83,7 +83,7 @@ export function RecentActivity({ userId }: RecentActivityProps) {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-900">Recent Conversations</h2>
+        <h2 className="text-xl font-bold text-gray-900">History</h2>
         <History className="w-5 h-5 text-gray-400" />
       </div>
 
