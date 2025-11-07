@@ -7,82 +7,34 @@
 
 /**
  * Detect if AI's response indicates a correct answer
- * Looks for [CORRECT] marker first, then falls back to pattern matching
+ * ONLY looks for [CORRECT] marker - no fallback patterns
+ * This prevents false positives from intermediate step encouragement
  */
 export function detectCorrectAnswer(aiResponse: string): boolean {
-  // Primary detection: Look for [CORRECT] marker
+  // Only trust the explicit [CORRECT] marker
   if (aiResponse.includes('[CORRECT]')) {
     console.log('✅ [Detection] Found [CORRECT] marker')
     return true
   }
   
-  // Fallback: Pattern matching for cases where marker isn't used
-  const correctPatterns = [
-    /that'?s?\s+(absolutely\s+)?correct/i,
-    /you'?re\s+(absolutely\s+)?right/i,
-    /exactly!?\s+right/i,
-    /perfect!?/i,
-    /well\s+done/i,
-    /great\s+(job|work)/i,
-    /excellent!?/i,
-    /yes!?\s+(that'?s\s+)?right/i,
-    /spot\s+on/i,
-    /you\s+got\s+it/i,
-    /you'?ve\s+solved\s+it/i,
-    /that'?s\s+the\s+answer/i,
-    /nicely\s+done/i,
-    /exactly\s+right/i,
-    /great\s+job/i,
-    /you\s+did\s+it/i,
-    /you\s+solved\s+it/i,
-    /congratulations/i,
-  ]
-
-  const matches = correctPatterns.some(pattern => {
-    const isMatch = pattern.test(aiResponse)
-    if (isMatch) {
-      console.log('✅ [Detection] Matched fallback pattern:', pattern)
-    }
-    return isMatch
-  })
-  
-  if (!matches) {
-    console.log('❌ [Detection] No correct answer indicator found in:', aiResponse.substring(0, 100))
-  }
-  
-  return matches
+  console.log('⏸️ [Detection] No [CORRECT] marker found - treating as intermediate step')
+  return false
 }
 
 /**
  * Detect if AI's response indicates an incorrect answer
- * Looks for [INCORRECT] marker first, then falls back to pattern matching
+ * ONLY looks for [INCORRECT] marker - no fallback patterns
+ * This prevents false positives from Socratic questioning
  */
 export function detectIncorrectAnswer(aiResponse: string): boolean {
-  // Primary detection: Look for [INCORRECT] marker
+  // Only trust the explicit [INCORRECT] marker
   if (aiResponse.includes('[INCORRECT]')) {
     console.log('❌ [Detection] Found [INCORRECT] marker')
     return true
   }
   
-  // Fallback: Pattern matching
-  const incorrectPatterns = [
-    /not\s+(quite|exactly)/i,
-    /that'?s\s+not\s+(correct|right)/i,
-    /incorrect/i,
-    /let'?s\s+try\s+(again|differently)/i,
-    /think\s+about\s+it\s+differently/i,
-    /close,?\s+but/i,
-    /almost,?\s+but/i,
-    /hmm,?\s+not\s+quite/i,
-  ]
-
-  const matches = incorrectPatterns.some(pattern => pattern.test(aiResponse))
-  
-  if (matches) {
-    console.log('❌ [Detection] Matched fallback incorrect pattern')
-  }
-  
-  return matches
+  console.log('⏸️ [Detection] No [INCORRECT] marker found - treating as intermediate step')
+  return false
 }
 
 /**
