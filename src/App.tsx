@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Header, EmptyState, LoadingState } from './components/Layout'
 import { MessageList, InputArea, TypingIndicator } from './components/Chat'
 import { AuthPage } from './components/Auth'
@@ -29,6 +29,9 @@ function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('tutor')
   const [currentSubtopicId, setCurrentSubtopicId] = useState<string | null>(null)
   const [checkingPlacement, setCheckingPlacement] = useState(true)
+  
+  // ✅ FIX: Track if session was started to prevent re-initialization on re-renders
+  const sessionStartedRef = useRef(false)
   const {
     conversation,
     addMessage,
@@ -139,6 +142,11 @@ function App() {
 
   const handleStartPractice = async (subtopicId: string) => {
     console.log('🎯 [App] Start practice for subtopic:', subtopicId)
+    
+    // ✅ CRITICAL: Reset session flag BEFORE clearing conversation
+    sessionStartedRef.current = false
+    console.log('🔄 [App] Reset sessionStartedRef to false')
+    
     setCurrentSubtopicId(subtopicId)
     setCurrentView('tutor')
     clearConversation()
@@ -188,20 +196,25 @@ function App() {
     // Use explicit subtopicId if provided (from handleStartPractice), otherwise use state
     const activeSubtopicId = explicitSubtopicId || currentSubtopicId
     
-    // 🔧 NEW LOGIC: Start session if not active AND subtopic is selected
-    // This works for ANY message (first, second, or later), providing automatic recovery
-    console.log('🔍 [App] Check practice session:', {
+    // ✅ FIXED: Use ref to ensure session starts only ONCE per practice flow
+    console.log('📨 [App] handleSendMessage called:', {
       messagesLength: conversation.messages.length,
       currentSubtopicId,
       explicitSubtopicId,
       activeSubtopicId,
-      isActive: practiceSession.isActive
+      sessionActive: practiceSession.isActive,
+      sessionStartedRef: sessionStartedRef.current,
     })
     
-    if (!practiceSession.isActive && activeSubtopicId) {
-      // Start or restart session (works for any message, not just first)
+    // Start session ONLY if:
+    // 1. Session hasn't been started yet (ref is false)
+    // 2. We have a subtopic ID
+    if (!sessionStartedRef.current && activeSubtopicId) {
       console.log('🎯 [App] Starting practice session for subtopic:', activeSubtopicId)
       console.log('📝 [App] Session will track XP from this point forward')
+      
+      // Mark as started BEFORE calling startSession to prevent race conditions
+      sessionStartedRef.current = true
       
       practiceSession.startSession(activeSubtopicId, content, imageUrl)
       
@@ -211,12 +224,12 @@ function App() {
         setCurrentSubtopicId(explicitSubtopicId)
       }
       
-      console.log('✅ [App] Practice session started successfully')
+      console.log('✅ [App] Practice session started successfully (ref now true)')
     } else if (!activeSubtopicId) {
       console.warn('⚠️ [App] No subtopic selected - XP will not be tracked!')
       console.warn('💡 [App] To track XP, start practice from Dashboard or Topics view')
     } else {
-      console.log('✅ [App] Practice session already active for subtopic:', activeSubtopicId)
+      console.log('✅ [App] Session already started (ref=true), continuing with existing session')
     }
     
     // Show typing indicator early if processing image
@@ -470,7 +483,10 @@ function App() {
         <XPFeedback
           result={practiceSession.lastAttemptResult}
           onClose={() => {
+            console.log('🔄 [App] Closing XP feedback and resetting for next practice')
             practiceSession.clearLastResult()
+            // Reset session tracking for next practice
+            sessionStartedRef.current = false
             // Clear subtopic selection after completing a problem
             setCurrentSubtopicId(null)
           }}
