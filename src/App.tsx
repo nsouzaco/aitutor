@@ -32,6 +32,10 @@ function App() {
   
   // ✅ FIX: Track if session was started to prevent re-initialization on re-renders
   const sessionStartedRef = useRef(false)
+  
+  // ✅ CRITICAL FIX: Store current subtopic in ref for immediate access
+  // Refs don't have async timing issues like setState, and persist across renders
+  const currentSubtopicRef = useRef<string | null>(null)
   const {
     conversation,
     addMessage,
@@ -143,13 +147,10 @@ function App() {
   const handleStartPractice = async (subtopicId: string) => {
     console.log('🎯 [App] Start practice for subtopic:', subtopicId)
     
-    // ✅ CRITICAL: Reset session flag BEFORE clearing conversation
+    // ✅ CRITICAL: Reset flags and store subtopic in ref
     sessionStartedRef.current = false
-    console.log('🔄 [App] Reset sessionStartedRef to false')
-    
-    // ✅ FIX: DON'T update currentSubtopicId here - causes race condition
-    // Let handleSendMessage update it AFTER session starts
-    // setCurrentSubtopicId(subtopicId)  // ❌ REMOVED
+    currentSubtopicRef.current = subtopicId  // ✅ Store in ref - available immediately
+    console.log('🔄 [App] Reset sessionStartedRef to false, set currentSubtopicRef to:', subtopicId)
     
     setCurrentView('tutor')
     clearConversation()
@@ -160,9 +161,9 @@ function App() {
     if (problem) {
       console.log('📝 [App] Auto-generated problem:', problem)
       // Wait a brief moment for view to switch, then send the problem
-      // Pass subtopicId directly to avoid state timing issues
+      // No need to pass subtopicId - it's in the ref
       setTimeout(() => {
-        handleSendMessage(problem, undefined, subtopicId)
+        handleSendMessage(problem)
       }, 100)
     } else {
       // Fallback if no problem could be generated
@@ -178,7 +179,7 @@ function App() {
       console.log('📝 [App] Using fallback message:', fallbackMessage)
       
       setTimeout(() => {
-        handleSendMessage(fallbackMessage, undefined, subtopicId)
+        handleSendMessage(fallbackMessage)
       }, 100)
     }
   }
@@ -193,25 +194,23 @@ function App() {
     await handleSendMessage('Here is my work. What do you think?', imageDataUrl)
   }
 
-  const handleSendMessage = async (content: string, imageUrl?: string, explicitSubtopicId?: string) => {
+  const handleSendMessage = async (content: string, imageUrl?: string) => {
     let messageContent = content
     
-    // Use explicit subtopicId if provided (from handleStartPractice), otherwise use state
-    const activeSubtopicId = explicitSubtopicId || currentSubtopicId
+    // ✅ FIXED: Get subtopicId from ref - always current, no async timing issues
+    const activeSubtopicId = currentSubtopicRef.current
     
-    // ✅ FIXED: Use ref to ensure session starts only ONCE per practice flow
     console.log('📨 [App] handleSendMessage called:', {
       messagesLength: conversation.messages.length,
-      currentSubtopicId,
-      explicitSubtopicId,
       activeSubtopicId,
+      currentSubtopicIdState: currentSubtopicId,
       sessionActive: practiceSession.isActive,
       sessionStartedRef: sessionStartedRef.current,
     })
     
     // Start session ONLY if:
     // 1. Session hasn't been started yet (ref is false)
-    // 2. We have a subtopic ID
+    // 2. We have a subtopic ID in the ref
     if (!sessionStartedRef.current && activeSubtopicId) {
       console.log('🎯 [App] Starting practice session for subtopic:', activeSubtopicId)
       console.log('📝 [App] Session will track XP from this point forward')
@@ -222,9 +221,8 @@ function App() {
       // Start the session in the Context
       practiceSession.startSession(activeSubtopicId, content, imageUrl)
       
-      // ✅ FIX: ALWAYS update currentSubtopicId after session starts
-      // This ensures it's in sync with the actual session, no race conditions
-      console.log('📌 [App] Updating currentSubtopicId to match session:', activeSubtopicId)
+      // ✅ Sync state for UI (non-critical, just for display)
+      console.log('📌 [App] Updating currentSubtopicId state to match session:', activeSubtopicId)
       setCurrentSubtopicId(activeSubtopicId)
       
       // Verify session started
@@ -235,7 +233,7 @@ function App() {
       
       console.log('✅ [App] Practice session started successfully (ref now true)')
     } else if (!activeSubtopicId) {
-      console.warn('⚠️ [App] No subtopic selected - XP will not be tracked!')
+      console.warn('⚠️ [App] No subtopic in ref - XP will not be tracked!')
       console.warn('💡 [App] To track XP, start practice from Dashboard or Topics view')
     } else {
       console.log('✅ [App] Session already started (ref=true), continuing with existing session')
@@ -505,6 +503,7 @@ function App() {
             practiceSession.clearLastResult()
             // Reset session tracking for next practice
             sessionStartedRef.current = false
+            currentSubtopicRef.current = null  // ✅ Reset ref too
             // Clear subtopic selection after completing a problem
             setCurrentSubtopicId(null)
           }}
