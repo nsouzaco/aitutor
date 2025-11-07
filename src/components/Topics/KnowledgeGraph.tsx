@@ -42,7 +42,7 @@ export function KnowledgeGraph({ userProgress, onNodeClick }: KnowledgeGraphProp
   )
 
   return (
-    <div className="w-full h-[800px] rounded-lg overflow-hidden border border-gray-100">
+    <div className="w-full h-[900px] rounded-lg overflow-hidden bg-gradient-to-br from-gray-50 to-white">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -52,23 +52,24 @@ export function KnowledgeGraph({ userProgress, onNodeClick }: KnowledgeGraphProp
         connectionLineType={ConnectionLineType.SmoothStep}
         fitView
         fitViewOptions={{
-          padding: 0.15,
+          padding: 0.1,
           includeHiddenNodes: false,
-          minZoom: 0.4,
-          maxZoom: 1,
+          minZoom: 0.5,
+          maxZoom: 1.2,
         }}
-        minZoom={0.4}
-        maxZoom={1}
-        zoomOnScroll={false}
-        zoomOnPinch={false}
+        minZoom={0.5}
+        maxZoom={1.2}
+        zoomOnScroll={true}
+        zoomOnPinch={true}
         zoomOnDoubleClick={false}
         panOnDrag={true}
-        panOnScroll={true}
-        preventScrolling={false}
+        panOnScroll={false}
+        preventScrolling={true}
         defaultEdgeOptions={{
-          type: 'smoothstep',
+          type: 'straight',
           animated: false,
         }}
+        proOptions={{ hideAttribution: true }}
       >
         <Panel position="top-right" className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-4 m-4">
           <Legend />

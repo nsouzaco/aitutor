@@ -5,16 +5,14 @@
  * Provides auto-layout algorithms and styling based on mastery status
  */
 
-import { Node, Edge, Position, MarkerType } from 'reactflow'
-import { Subtopic, SubtopicStatus } from '../types/curriculum'
+import { Node, Edge } from 'reactflow'
+import { SubtopicStatus } from '../types/curriculum'
 import { CURRICULUM, getAllSubtopics } from '../data/curriculum'
 import { StudentProgress } from '../types/progress'
 
 // Node dimensions for layout calculations
 const NODE_WIDTH = 220
 const NODE_HEIGHT = 100
-const HORIZONTAL_SPACING = 320 // Space between prerequisite levels
-const VERTICAL_SPACING = 130 // Space between nodes vertically
 
 /**
  * Color scheme for node states
@@ -54,7 +52,7 @@ export function getNodeColor(status: SubtopicStatus): {
 }
 
 /**
- * Convert curriculum to React Flow nodes and edges
+ * Convert curriculum to React Flow nodes and edges with parent-child hierarchy
  */
 export function convertCurriculumToReactFlow(
   userProgress?: StudentProgress
@@ -72,76 +70,105 @@ export function convertCurriculumToReactFlow(
     : []
   console.log('✅ [GraphLayout] Mastered subtopics:', masteredSubtopics.length)
 
-  // Calculate positions using hierarchical layout
-  const positions = calculateHierarchicalLayout()
-  console.log('📍 [GraphLayout] Calculated positions for', Object.keys(positions).length, 'nodes')
+  // Layout configuration
+  const TOPIC_WIDTH = 450
+  const TOPIC_SPACING = 100
+  const SUBTOPIC_Y_START = 100
+  const SUBTOPIC_Y_SPACING = 90
+  
+  let currentX = 0
 
-  // Create nodes for each subtopic
-  allSubtopics.forEach((subtopic, index) => {
-    const progress = userProgress?.subtopics[subtopic.id]
-    
-    let status: SubtopicStatus
-    if (progress?.mastered) {
-      status = 'mastered'
-    } else if (progress) {
-      status = 'in-progress'
-    } else {
-      // Check if unlocked
-      const allPrereqsMet = subtopic.prerequisites.every(prereqId =>
-        masteredSubtopics.includes(prereqId)
-      )
-      status = allPrereqsMet ? 'not-started' : 'locked'
-    }
-
-    const colors = getNodeColor(status)
-    const position = positions[subtopic.id] || { x: 100, y: index * VERTICAL_SPACING }
-
-    nodes.push({
-      id: subtopic.id,
-      type: 'default',
-      position,
-      data: {
-        label: subtopic.name,
-        subtopic,
-        status,
-        progress,
-      },
-      style: {
-        background: colors.bg,
-        color: colors.text,
-        border: `3px solid ${colors.border}`,
-        borderRadius: '12px',
-        padding: '16px',
-        width: NODE_WIDTH,
-        fontSize: '14px',
-        fontWeight: 600,
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-      },
-      sourcePosition: Position.Right,
-      targetPosition: Position.Left,
-    })
-  })
-
-  // Create edges for prerequisites
-  allSubtopics.forEach(subtopic => {
-    subtopic.prerequisites.forEach(prereqId => {
-      edges.push({
-        id: `${prereqId}-${subtopic.id}`,
-        source: prereqId,
-        target: subtopic.id,
-        type: 'smoothstep',
-        animated: false,
-        style: {
-          stroke: '#6b7280',
-          strokeWidth: 3,
+  // Create topic parent nodes and their subtopic children
+  CURRICULUM.units.forEach(unit => {
+    unit.topics.forEach(topic => {
+      // Calculate topic height based on number of subtopics
+      const topicHeight = SUBTOPIC_Y_START + (topic.subtopics.length * SUBTOPIC_Y_SPACING) + 40
+      
+      // Create parent topic node (group node)
+      const topicId = topic.id
+      nodes.push({
+        id: topicId,
+        type: 'group',
+        position: { x: currentX, y: 0 },
+        data: { 
+          label: topic.name,
+          description: topic.description 
         },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: '#6b7280',
-          width: 20,
-          height: 20,
+        style: {
+          width: TOPIC_WIDTH,
+          height: topicHeight,
+          background: 'linear-gradient(to bottom, rgba(249, 250, 251, 0.95), rgba(255, 255, 255, 0.9))',
+          border: '3px solid #d1d5db',
+          borderRadius: '16px',
+          padding: '20px',
+          fontSize: '16px',
+          fontWeight: 700,
+          color: '#1f2937',
         },
       })
+
+      // Create subtopic child nodes
+      topic.subtopics.forEach((subtopic, index) => {
+        const progress = userProgress?.subtopics[subtopic.id]
+        
+        let status: SubtopicStatus
+        if (progress?.mastered) {
+          status = 'mastered'
+        } else if (progress) {
+          status = 'in-progress'
+        } else {
+          // Check if unlocked
+          const allPrereqsMet = subtopic.prerequisites.every(prereqId =>
+            masteredSubtopics.includes(prereqId)
+          )
+          status = allPrereqsMet ? 'not-started' : 'locked'
+        }
+
+        const colors = getNodeColor(status)
+
+        nodes.push({
+          id: subtopic.id,
+          type: 'default',
+          position: { 
+            x: 20, 
+            y: SUBTOPIC_Y_START + (index * SUBTOPIC_Y_SPACING)
+          },
+          parentNode: topicId,
+          extent: 'parent' as const,
+          data: {
+            label: subtopic.name,
+            subtopic,
+            status,
+            progress,
+          },
+          style: {
+            background: colors.bg,
+            color: colors.text,
+            border: `3px solid ${colors.border}`,
+            borderRadius: '10px',
+            padding: '12px 16px',
+            width: TOPIC_WIDTH - 60,
+            fontSize: '13px',
+            fontWeight: 600,
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+          },
+        })
+
+        // Create edge from parent topic to subtopic
+        edges.push({
+          id: `${topicId}-${subtopic.id}`,
+          source: topicId,
+          target: subtopic.id,
+          type: 'straight',
+          animated: false,
+          style: {
+            stroke: '#d1d5db',
+            strokeWidth: 2,
+          },
+        })
+      })
+
+      currentX += TOPIC_WIDTH + TOPIC_SPACING
     })
   })
 
@@ -149,116 +176,6 @@ export function convertCurriculumToReactFlow(
   return { nodes, edges }
 }
 
-/**
- * Calculate hierarchical layout positions for nodes
- * Organizes topics horizontally and by prerequisite depth vertically
- */
-export function calculateHierarchicalLayout(): Record<string, { x: number; y: number }> {
-  const positions: Record<string, { x: number; y: number }> = {}
-
-  // Collect all topics across all units with their subtopics
-  const allTopics: Subtopic[][] = []
-  CURRICULUM.units.forEach(unit => {
-    unit.topics.forEach(topic => {
-      allTopics.push(topic.subtopics)
-    })
-  })
-
-  // Calculate horizontal spacing between topics
-  const TOPIC_HORIZONTAL_SPACING = 450 // Space between different topics
-  
-  let currentTopicX = 0
-  
-  allTopics.forEach((subtopics) => {
-    // Calculate depth (prerequisite level) for subtopics within this topic
-    const depths = calculateSubtopicDepths(subtopics)
-    const maxDepth = Math.max(...Object.values(depths), 0)
-    
-    // Group subtopics by depth (vertical layers)
-    const layers: Subtopic[][] = []
-    for (let d = 0; d <= maxDepth; d++) {
-      layers[d] = subtopics.filter(sub => depths[sub.id] === d)
-    }
-    
-    // Position nodes for this topic
-    layers.forEach((layer, layerIndex) => {
-      layer.forEach((subtopic, indexInLayer) => {
-        const x = currentTopicX + layerIndex * HORIZONTAL_SPACING
-        const y = indexInLayer * VERTICAL_SPACING
-        
-        positions[subtopic.id] = { x, y }
-      })
-    })
-    
-    // Move to next topic column
-    // Width is based on max depth (number of columns needed)
-    currentTopicX += (maxDepth + 1) * HORIZONTAL_SPACING + TOPIC_HORIZONTAL_SPACING
-  })
-
-  return positions
-}
-
-/**
- * Calculate depth (level) for each subtopic based on prerequisite chain
- * Depth 0 = no prerequisites, depth 1 = depends on depth 0, etc.
- */
-function calculateSubtopicDepths(subtopics: Subtopic[]): Record<string, number> {
-  const depths: Record<string, number> = {}
-
-  function calculateDepth(subtopic: Subtopic): number {
-    if (depths[subtopic.id] !== undefined) {
-      return depths[subtopic.id]
-    }
-
-    if (subtopic.prerequisites.length === 0) {
-      depths[subtopic.id] = 0
-      return 0
-    }
-
-    // Depth is 1 + max depth of prerequisites
-    const prereqDepths = subtopic.prerequisites
-      .map(prereqId => {
-        const prereq = subtopics.find(s => s.id === prereqId)
-        return prereq ? calculateDepth(prereq) : 0
-      })
-
-    const depth = 1 + Math.max(...prereqDepths, 0)
-    depths[subtopic.id] = depth
-    return depth
-  }
-
-  subtopics.forEach(subtopic => calculateDepth(subtopic))
-  return depths
-}
-
-/**
- * Build edges from prerequisites
- */
-export function buildEdgesFromPrerequisites(subtopics: Subtopic[]): Edge[] {
-  const edges: Edge[] = []
-
-  subtopics.forEach(subtopic => {
-    subtopic.prerequisites.forEach(prereqId => {
-      edges.push({
-        id: `${prereqId}-${subtopic.id}`,
-        source: prereqId,
-        target: subtopic.id,
-        type: 'smoothstep',
-        animated: false,
-        style: {
-          stroke: '#9ca3af',
-          strokeWidth: 2,
-        },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: '#9ca3af',
-        },
-      })
-    })
-  })
-
-  return edges
-}
 
 /**
  * Get status icon for display
@@ -331,8 +248,6 @@ export function calculateViewportBounds(nodes: Node[]): {
 
 export default {
   convertCurriculumToReactFlow,
-  calculateHierarchicalLayout,
-  buildEdgesFromPrerequisites,
   getNodeColor,
   getStatusIcon,
   getStatusLabel,
