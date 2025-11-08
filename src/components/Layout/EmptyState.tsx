@@ -10,7 +10,7 @@ export default function EmptyState({ onStartConversation: _onStartConversation }
     <div className="flex h-full flex-col items-center justify-center px-4 py-8">
       <div className="w-full text-center">
         {/* Icon - Sparkie 3D Model - Centered above text */}
-        <div className="flex justify-center mb-2also make these ">
+        <div className="flex justify-center mb-2">
           <SparkieIcon3D size="large" />
         </div>
 
