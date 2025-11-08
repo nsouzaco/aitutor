@@ -51,7 +51,6 @@ function App() {
     incrementStuckCount,
     resetStuckCount,
     saveConversation,
-    loadConversation,
   } = useConversation()
   
   const practiceSession = usePracticeSession()
@@ -184,16 +183,6 @@ function App() {
   const handleNewProblem = () => {
     clearConversation()
     setCurrentView('tutor')
-  }
-
-  const handleLoadConversation = async (conversationId: string) => {
-    try {
-      await loadConversation(conversationId)
-      setCurrentView('tutor')
-    } catch (error) {
-      console.error('Error loading conversation:', error)
-      // Could show a toast notification here
-    }
   }
 
   const handleNavigate = (view: ViewMode) => {
@@ -523,7 +512,6 @@ function App() {
         <Header 
           currentView={currentView}
           onNewProblem={hasMessages ? handleNewProblem : undefined}
-          onLoadConversation={handleLoadConversation}
           onNavigate={handleNavigate}
         />
       )}
@@ -541,6 +529,24 @@ function App() {
             currentSubtopicRef.current = null  // ✅ Reset ref too
             // Clear subtopic selection after completing a problem
             setCurrentSubtopicId(null)
+          }}
+          onContinuePractice={() => {
+            console.log('🔄 [App] Continue practicing same subtopic')
+            practiceSession.clearLastResult()
+            
+            // Get the current subtopic from the ref
+            const subtopicId = currentSubtopicRef.current
+            if (subtopicId) {
+              console.log('🎯 [App] Continuing practice for subtopic:', subtopicId)
+              // Start a new practice session with the same subtopic
+              handleStartPractice(subtopicId)
+            } else {
+              console.warn('⚠️ [App] No subtopic to continue practicing')
+              // Fallback to just closing
+              sessionStartedRef.current = false
+              currentSubtopicRef.current = null
+              setCurrentSubtopicId(null)
+            }
           }}
         />
       )}

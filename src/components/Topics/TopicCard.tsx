@@ -74,7 +74,7 @@ export function TopicCard({ topic, isLocked, lockedReason, onStartPractice }: To
     <div
       className={`p-4 rounded-lg border ${statusInfo.borderColor} ${statusInfo.bgColor} ${
         isLocked ? 'opacity-60' : 'hover:shadow-md'
-      } transition-all`}
+      } transition-all flex flex-col h-full`}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
@@ -101,31 +101,11 @@ export function TopicCard({ topic, isLocked, lockedReason, onStartPractice }: To
         </span>
       </div>
 
-      {/* Progress Bar (if in progress) */}
-      {topic.status === 'in-progress' && !isLocked && (
-        <div className="mb-3">
-          <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
-            <span>Progress to Mastery</span>
-            <span className="font-medium">{topic.masteryScore}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-1.5">
-            <div
-              className="bg-yellow-500 h-1.5 rounded-full transition-all duration-300"
-              style={{ width: `${topic.masteryScore}%` }}
-            />
-          </div>
-          <p className="text-xs text-gray-500 mt-1">
-            {topic.correctCount} / {Math.ceil(topic.attemptCount * 0.85)} correct • {topic.attemptCount} attempts
-          </p>
-        </div>
-      )}
-
-      {/* Mastery Score (if mastered) */}
-      {topic.status === 'mastered' && !isLocked && (
-        <div className="mb-3 text-sm text-green-700">
-          <span className="font-medium">{topic.masteryScore}% accuracy</span>
-          <span className="text-green-600 mx-1">•</span>
-          <span>{topic.attemptCount} attempts</span>
+      {/* Estimated Time */}
+      {!isLocked && (
+        <div className="flex items-center text-xs text-gray-500 mb-3">
+          <Clock className="w-3.5 h-3.5 mr-1" />
+          <span>~{topic.estimatedMinutes} min</span>
         </div>
       )}
 
@@ -137,11 +117,34 @@ export function TopicCard({ topic, isLocked, lockedReason, onStartPractice }: To
         </div>
       )}
 
-      {/* Estimated Time */}
-      {!isLocked && (
-        <div className="flex items-center text-xs text-gray-500 mb-3">
-          <Clock className="w-3.5 h-3.5 mr-1" />
-          <span>~{topic.estimatedMinutes} min</span>
+      {/* Spacer to push button to bottom */}
+      <div className="flex-1"></div>
+
+      {/* Progress Bar (if in progress) */}
+      {topic.status === 'in-progress' && !isLocked && (
+        <div className="mb-3">
+          <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+            <span>Progress to Mastery</span>
+            <span className="font-medium">{Math.round((topic.correctCount / 10) * 100)}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-1.5">
+            <div
+              className="bg-yellow-500 h-1.5 rounded-full transition-all duration-300"
+              style={{ width: `${(topic.correctCount / 10) * 100}%` }}
+            />
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            {topic.correctCount} / 10 correct • {topic.attemptCount} attempts
+          </p>
+        </div>
+      )}
+
+      {/* Mastery Score (if mastered) */}
+      {topic.status === 'mastered' && !isLocked && (
+        <div className="mb-3 text-sm text-green-700">
+          <span className="font-medium">{topic.masteryScore}% accuracy</span>
+          <span className="text-green-600 mx-1">•</span>
+          <span>{topic.correctCount} / 10 completed</span>
         </div>
       )}
 

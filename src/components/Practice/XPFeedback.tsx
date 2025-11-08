@@ -10,9 +10,10 @@ import { getSubtopicName } from '../../data/curriculum'
 interface XPFeedbackProps {
   result: AttemptResult
   onClose: () => void
+  onContinuePractice?: () => void
 }
 
-export function XPFeedback({ result, onClose }: XPFeedbackProps) {
+export function XPFeedback({ result, onClose, onContinuePractice }: XPFeedbackProps) {
   const [show, setShow] = useState(false)
   const [confetti, setConfetti] = useState(false)
 
@@ -29,6 +30,17 @@ export function XPFeedback({ result, onClose }: XPFeedbackProps) {
   const handleClose = () => {
     setShow(false)
     setTimeout(onClose, 300) // Wait for animation
+  }
+
+  const handleContinue = () => {
+    setShow(false)
+    setTimeout(() => {
+      if (onContinuePractice) {
+        onContinuePractice()
+      } else {
+        onClose()
+      }
+    }, 300)
   }
 
   return (
@@ -155,10 +167,10 @@ export function XPFeedback({ result, onClose }: XPFeedbackProps) {
 
         {/* Continue Button */}
         <button
-          onClick={handleClose}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
+          onClick={handleContinue}
+          className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white font-semibold py-3 rounded-lg transition-colors shadow-lg"
         >
-          Continue
+          {onContinuePractice ? 'Continue Practicing' : 'Continue'}
         </button>
       </div>
     </div>
