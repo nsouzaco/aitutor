@@ -47,10 +47,8 @@ body {
   scrollbar-width: none;
 }
 
-/* Prevent browser extension elements from interfering with layout */
-[id*="loom-extension"],
-[id*="loom-extension"] *,
-[id*="shadow-host"],
+/* Prevent accessibility status messages from interfering with layout */
+/* Note: Loom extension allowed - only hiding screen reader announcements */
 [id*="a11y-status-message"] {
   position: fixed !important;
   top: -9999px !important;
