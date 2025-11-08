@@ -101,6 +101,11 @@ function App() {
     // Wait until the Provider actually has a session
     if (!practiceSession.isActive || !practiceSession.currentSession) {
       console.log('⏳ [App] Waiting for session to be ready before submitting attempt...')
+      console.log('📊 [App] Current state:', {
+        pendingAttempt: !!pendingAttempt,
+        isActive: practiceSession.isActive,
+        hasSession: !!practiceSession.currentSession,
+      })
       return
     }
 
@@ -108,6 +113,7 @@ function App() {
     console.log('📊 [App] Session details:', {
       isActive: practiceSession.isActive,
       subtopicId: practiceSession.currentSession.subtopicId,
+      isCorrect: pendingAttempt.isCorrect,
     })
 
     const { response, isCorrect, history } = pendingAttempt
@@ -117,6 +123,8 @@ function App() {
       .then(result => {
         if (result) {
           console.log('🎉 [App] XP awarded from useEffect:', result.xpEarned)
+          console.log('📊 [App] AttemptResult:', result)
+          console.log('🎯 [App] XP Modal SHOULD NOW SHOW because lastAttemptResult is set')
           
           // Refresh Header XP
           if ((window as any).refreshHeaderXP) {
@@ -125,12 +133,15 @@ function App() {
           } else {
             console.warn('⚠️ [App] refreshHeaderXP function not found on window')
           }
+        } else {
+          console.warn('⚠️ [App] submitAttempt returned null - no result!')
         }
       })
       .catch(error => {
         console.error('❌ [App] Error submitting attempt:', error)
       })
       .finally(() => {
+        console.log('🧹 [App] Clearing pendingAttempt')
         setPendingAttempt(null)
       })
   }, [
@@ -139,6 +150,20 @@ function App() {
     practiceSession.currentSession,
     practiceSession,
   ])
+
+  // Debug: Log when lastAttemptResult changes
+  useEffect(() => {
+    console.log('🎯 [App] lastAttemptResult changed:', {
+      exists: !!practiceSession.lastAttemptResult,
+      xpEarned: practiceSession.lastAttemptResult?.xpEarned,
+      isCorrect: practiceSession.lastAttemptResult?.isCorrect,
+    })
+    if (practiceSession.lastAttemptResult) {
+      console.log('✨ [App] XP MODAL SHOULD BE VISIBLE NOW')
+    } else {
+      console.log('🚫 [App] XP MODAL SHOULD NOT BE VISIBLE')
+    }
+  }, [practiceSession.lastAttemptResult])
 
   const handlePlacementComplete = () => {
     console.log('✅ [App] Placement test completed')
@@ -393,13 +418,20 @@ function App() {
       // DO NOT check practiceSession.isActive here - it's stale!
       // The useEffect will handle submission after session becomes active
       console.log('🔍 [App] Checking AI response for answer detection...')
-      console.log('📝 [App] AI Response (with markers):', response.substring(0, 100))
-      console.log('📝 [App] Display Response (markers stripped):', displayResponse.substring(0, 100))
+      console.log('📝 [App] AI Response (with markers):', response.substring(0, 200))
+      console.log('📝 [App] Display Response (markers stripped):', displayResponse.substring(0, 200))
       console.log(`🎯 [App] Detection results - Correct: ${isCorrectAnswer}, Incorrect: ${isIncorrectAnswer}`)
+      console.log(`🎯 [App] Practice session state:`, {
+        isActive: practiceSession.isActive,
+        subtopicId: practiceSession.currentSession?.subtopicId,
+        sessionStartedRef: sessionStartedRef.current,
+        currentSubtopicRef: currentSubtopicRef.current,
+      })
       
       if (isCorrectAnswer || isIncorrectAnswer) {
         console.log(`${isCorrectAnswer ? '✅' : '❌'} [App] Answer detected as ${isCorrectAnswer ? 'correct' : 'incorrect'}`)
-        console.log(`📝 [App] Queueing attempt for submission: "${messageContent}"`)
+        console.log(`📝 [App] Queueing attempt for submission: "${messageContent.substring(0, 50)}"`)
+        console.log(`🎯 [App] Session should be active: ${practiceSession.isActive}`)
         
         // ✅ Queue the attempt - useEffect will submit it after session becomes active
         setPendingAttempt({
@@ -409,6 +441,7 @@ function App() {
         })
         
         console.log('⏳ [App] Attempt queued, waiting for session to be ready...')
+        console.log('📊 [App] Current lastAttemptResult before submission:', practiceSession.lastAttemptResult ? 'EXISTS' : 'NULL')
       } else {
         console.log('⏳ [App] No final answer detected yet, continuing conversation')
       }
@@ -506,7 +539,7 @@ function App() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-white">
+    <div className="flex h-screen flex-col bg-gray-50">
       {/* Hide header during placement test */}
       {currentView !== 'placement' && (
         <Header 
