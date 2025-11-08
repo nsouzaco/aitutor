@@ -495,15 +495,15 @@ function App() {
       case 'tutor':
       default:
         return (
-          <div className="flex flex-1 overflow-hidden">
+          <div className="flex flex-1 overflow-hidden max-h-full">
             {/* Left Side: Chat Interface (35%) */}
-            <div className="flex w-[35%] flex-col border-r border-gray-200">
+            <div className="flex w-[35%] flex-col border-r border-gray-200 h-full max-h-full">
               {/* Scrollable Content Area - Fixed height with scroll */}
-              <div className="flex-1 overflow-y-auto min-h-0">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 max-h-full">
                 {!hasMessages ? (
                   <EmptyState />
                 ) : (
-                  <div className="pb-4">
+                  <div className="h-full">
                     <MessageList messages={conversation.messages} />
                     {isThinking && (
                       <div className="mx-auto max-w-4xl px-4 sm:px-6">
@@ -525,7 +525,7 @@ function App() {
             </div>
 
             {/* Right Side: Whiteboard (65%) */}
-            <div className="flex w-[65%] flex-col">
+            <div className="flex w-[65%] flex-col h-full max-h-full">
               <Whiteboard onEvaluate={handleWhiteboardEvaluate} />
             </div>
           </div>
