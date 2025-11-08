@@ -28,7 +28,7 @@ export default function MessageList({ messages }: MessageListProps) {
         {messages.map(message => (
           <Message key={message.id} message={message} />
         ))}
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} style={{ height: 0, margin: 0, padding: 0, overflow: 'hidden' }} />
       </div>
     </div>
   )
