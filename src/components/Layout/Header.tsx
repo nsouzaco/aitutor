@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react'
-import { BookOpen, User, History, LayoutDashboard, Library, MessageSquare, Star } from 'lucide-react'
+import { BookOpen, User, LayoutDashboard, Library, MessageSquare, Star } from 'lucide-react'
 import { useAuth } from '../../contexts'
 import { signOut } from '../../services/authService'
-import { ConversationHistory } from '../History'
 import { getStudentProfile } from '../../services/dashboardService'
 
 interface HeaderProps {
   currentView?: 'tutor' | 'dashboard' | 'topics'
   onNewProblem?: () => void
-  onLoadConversation?: (conversationId: string) => void
   onNavigate?: (view: 'tutor' | 'dashboard' | 'topics') => void
   onXPUpdate?: () => void
 }
@@ -21,9 +19,8 @@ export const refreshHeaderXP = () => {
   }
 }
 
-export default function Header({ currentView = 'tutor', onNewProblem, onLoadConversation, onNavigate }: HeaderProps) {
+export default function Header({ currentView = 'tutor', onNewProblem, onNavigate }: HeaderProps) {
   const { user } = useAuth()
-  const [showHistory, setShowHistory] = useState(false)
   const [totalXP, setTotalXP] = useState(0)
   const [xpPulse, setXpPulse] = useState(false)
 
@@ -68,12 +65,6 @@ export default function Header({ currentView = 'tutor', onNewProblem, onLoadConv
       await signOut()
     } catch (error) {
       console.error('Error signing out:', error)
-    }
-  }
-
-  const handleLoadConversation = (conversationId: string) => {
-    if (onLoadConversation) {
-      onLoadConversation(conversationId)
     }
   }
 
@@ -141,28 +132,6 @@ export default function Header({ currentView = 'tutor', onNewProblem, onLoadConv
           {/* User Menu - Right Side */}
           {user && (
             <div className="flex items-center gap-2">
-              {/* XP Display - 🟠 ORANGE = NEW CODE DEPLOYED! */}
-              <div className={`flex items-center gap-1.5 rounded-full border border-orange-300 bg-orange-50 px-3 py-2 transition-all duration-300 ${
-                xpPulse ? 'scale-110 shadow-lg ring-2 ring-orange-400' : 'scale-100'
-              }`}>
-                <Star className={`w-4 h-4 text-orange-600 fill-orange-600 transition-transform duration-300 ${
-                  xpPulse ? 'rotate-180 scale-125' : 'rotate-0 scale-100'
-                }`} />
-                <span className="text-sm font-bold text-orange-900">{totalXP.toLocaleString()}</span>
-                <span className="text-xs text-orange-600 hidden sm:inline">XP</span>
-              </div>
-
-              {/* History Button */}
-              <button
-                onClick={() => setShowHistory(true)}
-                className="flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
-                aria-label="View conversation history"
-                title="View conversation history"
-              >
-                <History size={16} />
-                <span className="hidden sm:inline">History</span>
-              </button>
-
               {/* New Problem Button */}
               {onNewProblem && (
                 <button
@@ -183,6 +152,17 @@ export default function Header({ currentView = 'tutor', onNewProblem, onLoadConv
                 </span>
               </div>
 
+              {/* XP Display - Next to username */}
+              <div className={`flex items-center gap-1.5 rounded-full border border-orange-300 bg-orange-50 px-3 py-2 transition-all duration-300 ${
+                xpPulse ? 'scale-110 shadow-lg ring-2 ring-orange-400' : 'scale-100'
+              }`}>
+                <Star className={`w-4 h-4 text-orange-600 fill-orange-600 transition-transform duration-300 ${
+                  xpPulse ? 'rotate-180 scale-125' : 'rotate-0 scale-100'
+                }`} />
+                <span className="text-sm font-bold text-orange-900">{totalXP.toLocaleString()}</span>
+                <span className="text-xs text-orange-600 hidden sm:inline">XP</span>
+              </div>
+
               {/* Sign Out Button */}
               <button
                 onClick={handleSignOut}
@@ -195,14 +175,6 @@ export default function Header({ currentView = 'tutor', onNewProblem, onLoadConv
             </div>
           )}
         </div>
-
-        {/* Conversation History Modal */}
-        {showHistory && (
-          <ConversationHistory
-            onLoadConversation={handleLoadConversation}
-            onClose={() => setShowHistory(false)}
-          />
-        )}
       </header>
     </>
   )

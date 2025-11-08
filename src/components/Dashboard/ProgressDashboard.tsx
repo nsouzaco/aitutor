@@ -10,6 +10,7 @@ import { MasteryProgress } from './MasteryProgress'
 import { RecentActivity } from './RecentActivity'
 import { UnitBreakdown } from './UnitBreakdown'
 import { KnowledgeFrontier } from './KnowledgeFrontier'
+import { ConversationHistory } from '../History'
 import { getDashboardSummary, getUnitProgressBreakdown, getPaceRating, getGreeting } from '../../services/dashboardService'
 import { getNextRecommendedSubtopic } from '../../services/recommendationEngine'
 import { DashboardSummary } from '../../services/dashboardService'
@@ -27,6 +28,7 @@ export function ProgressDashboard({ userId, onStartPractice }: ProgressDashboard
   const [unitProgress, setUnitProgress] = useState<UnitProgress[]>([])
   const [recommendedTopic, setRecommendedTopic] = useState<SubtopicWithProgress | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [showHistory, setShowHistory] = useState(false)
 
   useEffect(() => {
     loadDashboardData()
@@ -134,10 +136,21 @@ export function ProgressDashboard({ userId, onStartPractice }: ProgressDashboard
             />
 
             {/* Recent Activity (History) */}
-            <RecentActivity userId={userId} />
+            <RecentActivity userId={userId} onViewAll={() => setShowHistory(true)} />
           </div>
         </div>
       </div>
+
+      {/* Conversation History Modal */}
+      {showHistory && (
+        <ConversationHistory
+          onLoadConversation={(conversationId) => {
+            console.log('Load conversation:', conversationId)
+            setShowHistory(false)
+          }}
+          onClose={() => setShowHistory(false)}
+        />
+      )}
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Brain, CheckCircle, ChevronRight, Sparkles } from 'lucide-react'
+import { CheckCircle, ChevronRight, Sparkles } from 'lucide-react'
 import { PLACEMENT_TEST_QUESTIONS } from '../../data/placementTest'
 import { submitPlacementTest } from '../../services/placementService'
 
@@ -69,10 +69,10 @@ export function PlacementTest({ userId, onComplete }: PlacementTestProps) {
   // Results screen
   if (showResults && results) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-orange-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full">
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full mb-6">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full mb-6">
               <Sparkles className="w-10 h-10 text-white" />
             </div>
             
@@ -85,15 +85,15 @@ export function PlacementTest({ userId, onComplete }: PlacementTestProps) {
             </p>
 
             {/* Score Card */}
-            <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-6 mb-8">
+            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-6 mb-8">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Your Score</p>
-                  <p className="text-4xl font-bold text-purple-600">{results.score}%</p>
+                  <p className="text-4xl font-bold text-yellow-600">{results.score}%</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Level</p>
-                  <p className="text-2xl font-bold text-blue-600 capitalize">
+                  <p className="text-2xl font-bold text-orange-600 capitalize">
                     {results.level}
                   </p>
                 </div>
@@ -115,7 +115,7 @@ export function PlacementTest({ userId, onComplete }: PlacementTestProps) {
 
             <button
               onClick={handleFinish}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold py-4 px-6 rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 text-white font-semibold py-4 px-6 rounded-xl hover:from-yellow-700 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               Start Learning
             </button>
@@ -127,13 +127,10 @@ export function PlacementTest({ userId, onComplete }: PlacementTestProps) {
 
   // Test screen
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-orange-50 p-4">
       <div className="max-w-4xl mx-auto py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full mb-4">
-            <Brain className="w-8 h-8 text-white" />
-          </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Placement Test
           </h1>
@@ -148,13 +145,13 @@ export function PlacementTest({ userId, onComplete }: PlacementTestProps) {
             <span className="text-sm font-medium text-gray-700">
               Question {currentQuestion + 1} of {PLACEMENT_TEST_QUESTIONS.length}
             </span>
-            <span className="text-sm font-medium text-purple-600">
+            <span className="text-sm font-medium text-yellow-600">
               {Math.round(progress)}%
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
-              className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full transition-all duration-300"
+              className="bg-gradient-to-r from-yellow-600 to-orange-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -163,7 +160,7 @@ export function PlacementTest({ userId, onComplete }: PlacementTestProps) {
         {/* Question Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
           <div className="mb-6">
-            <div className="inline-block px-3 py-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full mb-4 capitalize">
+            <div className="inline-block px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full mb-4 capitalize">
               {question.difficulty}
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
@@ -181,7 +178,7 @@ export function PlacementTest({ userId, onComplete }: PlacementTestProps) {
               value={answers[question.id] || ''}
               onChange={(e) => handleAnswerChange(e.target.value)}
               placeholder="Type your answer..."
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:ring-0 text-lg"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-yellow-500 focus:ring-0 text-lg"
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && hasAnswer) {
@@ -231,7 +228,7 @@ export function PlacementTest({ userId, onComplete }: PlacementTestProps) {
             <button
               onClick={handleNext}
               disabled={!hasAnswer}
-              className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold py-3 px-8 rounded-xl hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg"
+              className="flex items-center gap-2 bg-gradient-to-r from-yellow-600 to-orange-600 text-white font-semibold py-3 px-8 rounded-xl hover:from-yellow-700 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg"
             >
               Next
               <ChevronRight className="w-5 h-5" />
@@ -240,14 +237,14 @@ export function PlacementTest({ userId, onComplete }: PlacementTestProps) {
         </div>
 
         {/* Question Navigator */}
-        <div className="mt-8 flex flex-wrap gap-2 justify-center">
+        <div className="mt-8 flex flex-wrap gap-1.5 justify-center">
           {PLACEMENT_TEST_QUESTIONS.map((q, idx) => (
             <button
               key={q.id}
               onClick={() => setCurrentQuestion(idx)}
-              className={`w-10 h-10 rounded-lg font-medium transition-all ${
+              className={`w-8 h-8 rounded-lg text-sm font-medium transition-all ${
                 idx === currentQuestion
-                  ? 'bg-purple-600 text-white ring-2 ring-purple-300'
+                  ? 'bg-yellow-600 text-white ring-2 ring-yellow-300'
                   : answers[q.id]
                   ? 'bg-green-100 text-green-700 hover:bg-green-200'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'

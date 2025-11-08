@@ -90,18 +90,9 @@ export function KnowledgeFrontier({ recommendedTopic, onStartPractice }: Knowled
         <span>Estimated time: {recommendedTopic.estimatedMinutes} minutes</span>
       </div>
 
-      {/* CTA Button */}
-      <button
-        onClick={() => onStartPractice?.(recommendedTopic.id)}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-full transition-colors flex items-center justify-center space-x-2 group shadow-md hover:shadow-lg"
-      >
-        <span>{isInProgress ? 'Continue Practice' : 'Start Practice'}</span>
-        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-      </button>
-
       {/* Example Problems Preview */}
       {recommendedTopic.examples && recommendedTopic.examples.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-blue-100">
+        <div className="mb-4 pb-4 border-b border-blue-100">
           <p className="text-xs font-medium text-gray-600 mb-2">Example Problems:</p>
           <ul className="space-y-1">
             {recommendedTopic.examples.slice(0, 2).map((example, index) => (
@@ -113,6 +104,15 @@ export function KnowledgeFrontier({ recommendedTopic, onStartPractice }: Knowled
           </ul>
         </div>
       )}
+
+      {/* CTA Button */}
+      <button
+        onClick={() => onStartPractice?.(recommendedTopic.id)}
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-full transition-colors flex items-center justify-center space-x-2 group shadow-md hover:shadow-lg"
+      >
+        <span>{isInProgress ? 'Continue Practice' : 'Start Practice'}</span>
+        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+      </button>
     </div>
   )
 }

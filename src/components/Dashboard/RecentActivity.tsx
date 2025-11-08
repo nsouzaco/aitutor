@@ -8,6 +8,7 @@ import { getUserConversations } from '../../services/firestoreService'
 
 interface RecentActivityProps {
   userId: string
+  onViewAll?: () => void
 }
 
 interface ConversationItem {
@@ -17,7 +18,7 @@ interface ConversationItem {
   updatedAt: Date
 }
 
-export function RecentActivity({ userId }: RecentActivityProps) {
+export function RecentActivity({ userId, onViewAll }: RecentActivityProps) {
   const [conversations, setConversations] = useState<ConversationItem[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -117,11 +118,7 @@ export function RecentActivity({ userId }: RecentActivityProps) {
 
       <button 
         className="mt-4 w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium py-2 px-4 rounded-lg hover:bg-blue-50 transition-colors"
-        onClick={() => {
-          // Trigger the history modal - we'll use the global history button
-          const historyButton = document.querySelector('[aria-label="View conversation history"]') as HTMLButtonElement
-          if (historyButton) historyButton.click()
-        }}
+        onClick={() => onViewAll?.()}
       >
         View All Conversations →
       </button>

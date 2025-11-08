@@ -67,13 +67,13 @@ export function StatsHeader({
         </div>
 
         {/* Current Streak */}
-        <div className="flex items-center space-x-3 p-4 bg-orange-50 rounded-lg border border-orange-200">
+        <div className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg border border-green-200">
           <div className="flex-shrink-0">
-            <Flame className="w-8 h-8 text-orange-600" />
+            <Flame className="w-8 h-8 text-green-600" />
           </div>
           <div>
-            <p className="text-sm text-orange-600 font-medium">Streak</p>
-            <p className="text-2xl font-bold text-orange-900">
+            <p className="text-sm text-green-600 font-medium">Streak</p>
+            <p className="text-2xl font-bold text-green-900">
               {currentStreak} {currentStreak === 1 ? 'day' : 'days'}
             </p>
           </div>
@@ -100,10 +100,10 @@ export function StatsHeader({
         <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
           <div
             className="bg-gradient-to-r from-orange-500 to-blue-500 h-2 rounded-full transition-all duration-500"
-            style={{ width: `${monthlyXP > 0 ? Math.min((monthlyXP / 400) * 100, 100) : 0}%` }}
+            style={{ width: `${monthlyXP > 0 ? Math.min((monthlyXP / 100) * 100, 100) : 0}%` }}
           />
         </div>
-        <p className="text-xs text-gray-500 mt-1">Goal: 400 XP/month • {Math.round((monthlyXP / 400) * 100)}% complete</p>
+        <p className="text-xs text-gray-500 mt-1">Goal: 100 XP/month • {Math.round((monthlyXP / 100) * 100)}% complete</p>
       </div>
     </div>
   )
