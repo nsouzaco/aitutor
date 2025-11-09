@@ -2,7 +2,7 @@
  * XPFeedback - Display XP earned and progress updates after solving problems
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Star, TrendingUp, Unlock, CheckCircle, X } from 'lucide-react'
 import { AttemptResult } from '../../types/attempt'
 import { getSubtopicName } from '../../data/curriculum'
@@ -16,6 +16,40 @@ interface XPFeedbackProps {
 export function XPFeedback({ result, onClose, onContinuePractice }: XPFeedbackProps) {
   const [show, setShow] = useState(false)
   const [confetti, setConfetti] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  // Preload audio when component mounts
+  useEffect(() => {
+    const audioPath = '/assets/mixkit-correct-positive-notification-957.wav'
+    const audio = new Audio(audioPath)
+    audio.volume = 0.7
+    audio.preload = 'auto'
+    
+    // Set up error handler
+    audio.addEventListener('error', (e) => {
+      console.error('❌ Audio preload error:', e)
+      console.error('Audio error details:', {
+        code: audio.error?.code,
+        message: audio.error?.message,
+        networkState: audio.networkState,
+        readyState: audio.readyState
+      })
+    })
+    
+    // Load the audio
+    audio.load()
+    audioRef.current = audio
+    
+    console.log('🔊 Audio preloaded:', audioPath)
+    
+    // Cleanup on unmount
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+    }
+  }, [])
 
   useEffect(() => {
     // Trigger animation
@@ -25,53 +59,40 @@ export function XPFeedback({ result, onClose, onContinuePractice }: XPFeedbackPr
       // Add confetti effect for correct answers
       setTimeout(() => setConfetti(false), 3000)
       
-      // Play success sound
-      try {
-        const audioPath = '/assets/mixkit-correct-positive-notification-957.wav'
-        console.log('🔊 Attempting to play sound:', audioPath)
+      // Play preloaded success sound immediately
+      if (audioRef.current) {
+        // Reset audio to beginning in case it was already played
+        audioRef.current.currentTime = 0
         
-        const audio = new Audio(audioPath)
-        audio.volume = 0.7 // Set volume to 70%
-        
-        // Set up error handler
-        audio.addEventListener('error', (e) => {
-          console.error('❌ Audio error:', e)
-          console.error('Audio error details:', {
-            code: audio.error?.code,
-            message: audio.error?.message,
-            networkState: audio.networkState,
-            readyState: audio.readyState
-          })
-        })
-        
-        // Try to play immediately (user has already interacted with the page)
-        const playPromise = audio.play()
+        const playPromise = audioRef.current.play()
         
         if (playPromise !== undefined) {
           playPromise
             .then(() => {
-              console.log('✅ Success sound played')
+              console.log('✅ Success sound played (preloaded)')
             })
             .catch(error => {
-              console.warn('⚠️ Could not play success sound:', error)
+              console.warn('⚠️ Could not play preloaded sound:', error)
               console.warn('Error details:', {
                 name: error.name,
                 message: error.message
               })
               // Try again after a small delay
               setTimeout(() => {
-                audio.play()
-                  .then(() => {
-                    console.log('✅ Success sound played (retry)')
-                  })
-                  .catch(err => {
-                    console.warn('⚠️ Retry failed:', err)
-                  })
+                if (audioRef.current) {
+                  audioRef.current.play()
+                    .then(() => {
+                      console.log('✅ Success sound played (retry)')
+                    })
+                    .catch(err => {
+                      console.warn('⚠️ Retry failed:', err)
+                    })
+                }
               }, 200)
             })
         }
-      } catch (error) {
-        console.error('❌ Error creating audio:', error)
+      } else {
+        console.warn('⚠️ Audio not preloaded yet')
       }
     }
   }, [result.isCorrect])
