@@ -39,3 +39,4 @@ firestore-debug.log
 .vercel
 .vercel/**/*
 
+.env*.local
