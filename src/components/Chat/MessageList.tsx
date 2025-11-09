@@ -7,15 +7,19 @@ interface MessageListProps {
 }
 
 export default function MessageList({ messages }: MessageListProps) {
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   // Auto-scroll to bottom when new messages arrive
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
-
+  // Scroll the parent container instead of using scrollIntoView
   useEffect(() => {
-    scrollToBottom()
+    if (containerRef.current) {
+      // Find the scrollable parent container
+      const scrollableParent = containerRef.current.closest('[class*="overflow-y-auto"]') as HTMLElement
+      if (scrollableParent) {
+        // Use scrollTop for more reliable behavior
+        scrollableParent.scrollTop = scrollableParent.scrollHeight
+      }
+    }
   }, [messages])
 
   if (messages.length === 0) {
@@ -23,12 +27,11 @@ export default function MessageList({ messages }: MessageListProps) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6">
+    <div ref={containerRef} className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6">
       <div className="space-y-4">
         {messages.map(message => (
           <Message key={message.id} message={message} />
         ))}
-        <div ref={messagesEndRef} style={{ height: 0, margin: 0, padding: 0, overflow: 'hidden', lineHeight: 0, fontSize: 0 }} />
       </div>
     </div>
   )
