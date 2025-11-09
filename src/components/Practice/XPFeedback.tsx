@@ -24,8 +24,14 @@ export function XPFeedback({ result, onClose, onContinuePractice }: XPFeedbackPr
       setConfetti(true)
       // Add confetti effect for correct answers
       setTimeout(() => setConfetti(false), 3000)
+      
+      // Play success sound
+      const audio = new Audio('/assets/mixkit-correct-positive-notification-957.wav')
+      audio.play().catch(error => {
+        console.warn('Could not play success sound:', error)
+      })
     }
-  }, [])
+  }, [result.isCorrect])
 
   const handleClose = () => {
     setShow(false)
