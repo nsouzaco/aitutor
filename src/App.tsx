@@ -591,18 +591,19 @@ function App() {
             setCurrentSubtopicId(null)
           }}
           onContinuePractice={() => {
-            console.log('🔄 [App] Continue practicing same subtopic')
+            console.log('🔄 [App] Continue practicing')
             practiceSession.clearLastResult()
             
             // Get the current subtopic from the ref
             const subtopicId = currentSubtopicRef.current
             if (subtopicId) {
+              // Session-based practice - start new session with same subtopic
               console.log('🎯 [App] Continuing practice for subtopic:', subtopicId)
-              // Start a new practice session with the same subtopic
               handleStartPractice(subtopicId)
             } else {
-              console.warn('⚠️ [App] No subtopic to continue practicing')
-              // Fallback to just closing
+              // Non-session mode - clear chat and let user start fresh
+              console.log('🔄 [App] Non-session mode - clearing chat for fresh start')
+              clearConversation()
               sessionStartedRef.current = false
               currentSubtopicRef.current = null
               setCurrentSubtopicId(null)
