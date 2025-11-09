@@ -503,14 +503,14 @@ function App() {
                 {!hasMessages ? (
                   <EmptyState />
                 ) : (
-                  <div className="h-full">
+                  <>
                     <MessageList messages={conversation.messages} />
                     {isThinking && (
                       <div className="mx-auto max-w-4xl px-4 sm:px-6">
                         <TypingIndicator />
                       </div>
                     )}
-                  </div>
+                  </>
                 )}
               </div>
 
