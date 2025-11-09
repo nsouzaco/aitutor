@@ -414,9 +414,7 @@ function App() {
         console.log('💡 [App] Hint detected in AI response')
       }
 
-      // ✅ SOLUTION B: Detect correctness and queue attempt for submission
-      // DO NOT check practiceSession.isActive here - it's stale!
-      // The useEffect will handle submission after session becomes active
+      // ✅ Detect correctness and handle based on session state
       console.log('🔍 [App] Checking AI response for answer detection...')
       console.log('📝 [App] AI Response (with markers):', response.substring(0, 200))
       console.log('📝 [App] Display Response (markers stripped):', displayResponse.substring(0, 200))
@@ -430,18 +428,47 @@ function App() {
       
       if (isCorrectAnswer || isIncorrectAnswer) {
         console.log(`${isCorrectAnswer ? '✅' : '❌'} [App] Answer detected as ${isCorrectAnswer ? 'correct' : 'incorrect'}`)
-        console.log(`📝 [App] Queueing attempt for submission: "${messageContent.substring(0, 50)}"`)
-        console.log(`🎯 [App] Session should be active: ${practiceSession.isActive}`)
         
-        // ✅ Queue the attempt - useEffect will submit it after session becomes active
-        setPendingAttempt({
-          response: messageContent,
-          isCorrect: isCorrectAnswer,
-          history: conversation.messages,
-        })
-        
-        console.log('⏳ [App] Attempt queued, waiting for session to be ready...')
-        console.log('📊 [App] Current lastAttemptResult before submission:', practiceSession.lastAttemptResult ? 'EXISTS' : 'NULL')
+        // If there's an active session, queue the attempt for full tracking
+        if (practiceSession.isActive && practiceSession.currentSession) {
+          console.log(`📝 [App] Session active - queueing attempt for submission: "${messageContent.substring(0, 50)}"`)
+          
+          // ✅ Queue the attempt - useEffect will submit it after session becomes active
+          setPendingAttempt({
+            response: messageContent,
+            isCorrect: isCorrectAnswer,
+            history: conversation.messages,
+          })
+          
+          console.log('⏳ [App] Attempt queued, waiting for session to be ready...')
+          console.log('📊 [App] Current lastAttemptResult before submission:', practiceSession.lastAttemptResult ? 'EXISTS' : 'NULL')
+        } else {
+          // No active session - award simple XP for correct answers only
+          console.log('📝 [App] No active session - awarding simple XP for correct answer')
+          
+          if (isCorrectAnswer) {
+            practiceSession.awardSimpleXP(true)
+              .then(result => {
+                if (result) {
+                  console.log('🎉 [App] Simple XP awarded:', result.xpEarned)
+                  console.log('🎯 [App] XP Modal SHOULD NOW SHOW for non-session answer')
+                  
+                  // Refresh Header XP
+                  if ((window as any).refreshHeaderXP) {
+                    console.log('🔄 [App] Refreshing Header XP...')
+                    setTimeout(() => (window as any).refreshHeaderXP(), 500)
+                  }
+                } else {
+                  console.warn('⚠️ [App] awardSimpleXP returned null')
+                }
+              })
+              .catch(error => {
+                console.error('❌ [App] Error awarding simple XP:', error)
+              })
+          } else {
+            console.log('⏸️ [App] Incorrect answer with no session - no XP awarded')
+          }
+        }
       } else {
         console.log('⏳ [App] No final answer detected yet, continuing conversation')
       }

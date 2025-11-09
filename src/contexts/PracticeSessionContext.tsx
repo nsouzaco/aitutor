@@ -15,6 +15,8 @@ import { createContext, useContext, useState, useCallback, ReactNode, useMemo, u
 import { recordAttempt } from '../services/attemptService'
 import { AttemptResult } from '../types/attempt'
 import { useAuth } from './AuthContext'
+import { updateStudentXP } from '../services/progressService'
+import { v4 as uuidv4 } from 'uuid'
 
 interface PracticeSession {
   subtopicId: string  // Always required when session is active
@@ -30,6 +32,7 @@ interface PracticeSessionContextType {
   startSession: (subtopicId: string, problemText: string, imageUrl?: string) => void
   useHint: () => void
   submitAttempt: (studentResponse: string, isCorrect: boolean, conversationHistory?: any[]) => Promise<AttemptResult | null>
+  awardSimpleXP: (isCorrect: boolean) => Promise<AttemptResult | null>
   endSession: () => void
   clearLastResult: () => void
   isActive: boolean
@@ -148,6 +151,55 @@ export function PracticeSessionProvider({ children }: { children: ReactNode }) {
     setLastAttemptResult(null)
   }, [])
 
+  // Award simple XP for non-session answers (when user just chats without starting practice)
+  const awardSimpleXP = useCallback(async (
+    isCorrect: boolean
+  ): Promise<AttemptResult | null> => {
+    const userId = user?.uid
+
+    console.log('🎁 [PracticeSessionProvider] awardSimpleXP CALLED', {
+      hasUser: !!userId,
+      isCorrect,
+    })
+
+    if (!userId) {
+      console.warn('⚠️ [PracticeSessionProvider] Cannot award XP - no user')
+      return null
+    }
+
+    // Only award XP for correct answers
+    if (!isCorrect) {
+      console.log('⏸️ [PracticeSessionProvider] Incorrect answer - no XP awarded')
+      return null
+    }
+
+    const xpToAward = 2
+
+    try {
+      // Award 2 XP directly
+      await updateStudentXP(userId, xpToAward)
+      console.log('✅ [PracticeSessionProvider] Awarded 2 XP for non-session correct answer')
+
+      // Create a simple result for the modal
+      const result: AttemptResult = {
+        attemptId: uuidv4(),
+        isCorrect: true,
+        xpEarned: xpToAward,
+        feedback: `Great work! You earned ${xpToAward} XP.`,
+        masteryAchieved: false,
+        newTopicsUnlocked: undefined,
+      }
+
+      setLastAttemptResult(result)
+      console.log('✅ [PracticeSessionProvider] Simple XP result created:', result)
+
+      return result
+    } catch (error) {
+      console.error('❌ [PracticeSessionProvider] Error awarding simple XP:', error)
+      return null
+    }
+  }, [user])
+
   const isActive = currentSession !== null
 
   // ✅ CRITICAL FIX: Memoize context value to prevent unnecessary re-renders
@@ -159,10 +211,11 @@ export function PracticeSessionProvider({ children }: { children: ReactNode }) {
     startSession,
     useHint,
     submitAttempt,  // This changes when currentSession changes (has [currentSession, user] deps)
+    awardSimpleXP,
     endSession,
     clearLastResult,
     isActive,
-  }), [currentSession, lastAttemptResult, startSession, useHint, submitAttempt, endSession, clearLastResult, isActive])
+  }), [currentSession, lastAttemptResult, startSession, useHint, submitAttempt, awardSimpleXP, endSession, clearLastResult, isActive])
 
   return (
     <PracticeSessionContext.Provider value={value}>
