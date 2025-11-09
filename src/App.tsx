@@ -495,7 +495,7 @@ function App() {
       case 'tutor':
       default:
         return (
-          <div className="flex flex-1 overflow-hidden max-h-full">
+          <div className="flex flex-1 overflow-hidden" style={{ maxHeight: 'calc(100vh - 4rem)' }}>
             {/* Left Side: Chat Interface (35%) */}
             <div className="flex w-[35%] flex-col border-r border-gray-200 h-full max-h-full">
               {/* Scrollable Content Area - Fixed height with scroll */}
