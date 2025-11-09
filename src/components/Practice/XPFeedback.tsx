@@ -26,10 +26,53 @@ export function XPFeedback({ result, onClose, onContinuePractice }: XPFeedbackPr
       setTimeout(() => setConfetti(false), 3000)
       
       // Play success sound
-      const audio = new Audio('/assets/mixkit-correct-positive-notification-957.wav')
-      audio.play().catch(error => {
-        console.warn('Could not play success sound:', error)
-      })
+      try {
+        const audioPath = '/assets/mixkit-correct-positive-notification-957.wav'
+        console.log('🔊 Attempting to play sound:', audioPath)
+        
+        const audio = new Audio(audioPath)
+        audio.volume = 0.7 // Set volume to 70%
+        
+        // Set up error handler
+        audio.addEventListener('error', (e) => {
+          console.error('❌ Audio error:', e)
+          console.error('Audio error details:', {
+            code: audio.error?.code,
+            message: audio.error?.message,
+            networkState: audio.networkState,
+            readyState: audio.readyState
+          })
+        })
+        
+        // Try to play immediately (user has already interacted with the page)
+        const playPromise = audio.play()
+        
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log('✅ Success sound played')
+            })
+            .catch(error => {
+              console.warn('⚠️ Could not play success sound:', error)
+              console.warn('Error details:', {
+                name: error.name,
+                message: error.message
+              })
+              // Try again after a small delay
+              setTimeout(() => {
+                audio.play()
+                  .then(() => {
+                    console.log('✅ Success sound played (retry)')
+                  })
+                  .catch(err => {
+                    console.warn('⚠️ Retry failed:', err)
+                  })
+              }, 200)
+            })
+        }
+      } catch (error) {
+        console.error('❌ Error creating audio:', error)
+      }
     }
   }, [result.isCorrect])
 
