@@ -34,9 +34,15 @@ dist-ssr
 .firebaserc
 firebase-debug.log
 firestore-debug.log
+functions/lib
+functions/node_modules
 
 # Vercel
 .vercel
 .vercel/**/*
 
 .env*.local
+
+# Memory Bank
+memory-bank/
+.memory-bank/

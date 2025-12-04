@@ -1,5 +1,5 @@
 import { Message } from '../types'
-import { ChatMessage } from '../services/openaiService'
+import { ChatMessage } from '../services/vercelApiService'
 import { SOCRATIC_SYSTEM_PROMPT } from '../constants'
 
 /**

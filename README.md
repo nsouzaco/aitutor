@@ -1,145 +1,108 @@
 # Sparkie - AI Math Tutor
 
-An AI-powered math tutor that uses the Socratic method to guide students through problem-solving without giving direct answers.
+Sparkie is an intelligent, AI-powered math tutor designed to guide students through problem-solving using the Socratic method. Instead of simply providing answers, Sparkie encourages discovery learning by asking guiding questions, helping students build true understanding.
 
-## Features
+## ✨ Key Features
 
-- 🎓 **Socratic Method**: Guides students through discovery learning
-- 📸 **Image Upload**: Upload photos of math problems (handwritten or printed)
-- ✨ **Beautiful Math Rendering**: Professional LaTeX equation display
-- 💬 **Interactive Chat**: Clean, distraction-free conversation interface
-- 🔐 **User Authentication**: Save conversation history with Firebase Auth
-- 🎯 **Adaptive Hints**: Escalating hint system when students get stuck
+- **🧠 Socratic Guidance**: AI tutor that guides rather than tells, fostering critical thinking.
+- **📸 Visual Problem Solving**: Upload images of handwritten or printed math problems for instant analysis.
+- **🔢 Professional Math Rendering**: Beautiful LaTeX rendering for complex equations and expressions.
+- **💬 Interactive Interface**: Clean, distraction-free chat experience tailored for learning.
+- **📊 Progress Tracking**: Detailed mastery tracking and knowledge visualization.
+- **🔐 Secure Architecture**: Serverless integration ensuring API keys remain protected.
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-- **Frontend**: React 18 + TypeScript + Vite
+- **Frontend**: React 18, TypeScript, Vite
 - **Styling**: Tailwind CSS
-- **Math Rendering**: KaTeX
-- **Backend**: 
-  - Firebase (Firestore + Auth)
-  - Vercel Serverless Functions (OpenAI API proxy)
-- **AI**: OpenAI API (GPT-4o + Vision)
-- **Testing**: Vitest + React Testing Library
-- **Deployment**: Vercel (FREE tier)
+- **Math Engine**: KaTeX, React-KaTeX
+- **Backend/Serverless**: Vercel Serverless Functions (Node.js)
+- **Database & Auth**: Firebase Firestore & Authentication
+- **AI Model**: OpenAI GPT-4o with Vision capabilities
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js >= 18.0.0
-- npm >= 9.0.0
-- OpenAI API key
-- Firebase project
+- Node.js (v18+)
+- npm (v9+)
+- OpenAI API Key
+- Firebase Project (Firestore & Auth enabled)
 
 ### Installation
 
-1. Clone the repository:
-\`\`\`bash
-git clone <repository-url>
-cd aitutor
-\`\`\`
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd aitutor
+   ```
 
-2. Install dependencies:
-\`\`\`bash
-npm install
-\`\`\`
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-3. Set up environment variables:
-   - Copy `.env.example` to `.env.local`
-   - Add your OpenAI API key
-   - Add your Firebase configuration
+3. **Environment Setup**
+   Create a `.env.local` file in the root directory with the following configuration:
 
-4. Start the development server:
-\`\`\`bash
-npm run dev
-\`\`\`
+   ```env
+   # OpenAI (Required for Tutor Intelligence)
+   OPENAI_API_KEY=your_openai_api_key_here
 
-The app will be running at `http://localhost:5173`
+   # Firebase (Required for Auth & Database)
+   VITE_FIREBASE_API_KEY=your_api_key
+   VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+   VITE_FIREBASE_PROJECT_ID=your_project_id
+   VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+   VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+   VITE_FIREBASE_APP_ID=your_app_id
+   ```
 
-### Firebase Setup
+4. **Start Development Server**
+   To fully enable the serverless API functions locally, use Vercel CLI (recommended):
 
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Create a new project
-3. Enable Firestore Database
-4. Enable Authentication (Email/Password + Google)
-5. Enable Firebase Hosting
-6. Copy your Firebase configuration to `.env.local`
+   ```bash
+   npm i -g vercel
+   vercel dev
+   ```
+   
+   Alternatively, for UI-only development:
+   ```bash
+   npm run dev
+   ```
 
-### OpenAI Setup
+   The application will be available at `http://localhost:3000` (Vercel) or `http://localhost:5173` (Vite).
 
-1. Go to [OpenAI Platform](https://platform.openai.com/)
-2. Create an API key
-3. Save it for Vercel deployment (see deployment guide)
+## 📦 Deployment
 
-> **Note**: For local development, you'll need to run the Vercel dev server to use the serverless functions. See [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md) for details.
+This project is optimized for **Vercel** deployment, utilizing their zero-config serverless functions to securely proxy OpenAI API requests.
 
-## Available Scripts
+1. **Push to GitHub**: Ensure your repository is up to date.
+2. **Import to Vercel**:
+   - Go to [Vercel Dashboard](https://vercel.com).
+   - Import your repository.
+   - Framework preset should auto-detect as **Vite**.
+3. **Configure Environment Variables**:
+   - Add all variables from your `.env.local` to the Vercel project settings.
+   - **Critical**: Ensure `OPENAI_API_KEY` is added to the Environment Variables in Vercel to enable the AI features.
+4. **Deploy**: Click deploy and your tutor is live!
 
-- `npm run dev` - Start development server (Vite only, no API)
-- `vercel dev` - Start with Vercel serverless functions (recommended)
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run format` - Format code with Prettier
-- `npm run test` - Run tests
-- `npm run test:ui` - Run tests with UI
+## 📂 Project Structure
 
-## Deployment
-
-This project uses **Vercel's FREE tier** for hosting and serverless functions to securely handle OpenAI API calls.
-
-### Quick Deploy to Vercel
-
-1. Push code to GitHub
-2. Import project on [vercel.com](https://vercel.com)
-3. Add environment variables (Firebase + OpenAI API key)
-4. Deploy! 🚀
-
-**Full deployment guide**: See [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md)
-
-### Why Vercel?
-
-- ✅ **FREE** hosting & serverless functions
-- ✅ **Secure** API key storage (server-side only)
-- ✅ **Auto-deployment** on git push
-- ✅ **No credit card** required
-
-## Project Structure
-
-\`\`\`
+```
 src/
-├── components/       # React components
-│   ├── Auth/        # Authentication components
-│   ├── Chat/        # Chat interface
-│   ├── ImageUpload/ # Image upload UI
-│   ├── Layout/      # Layout components
-│   └── MathRenderer/# Math display
-├── contexts/        # React Context
-├── hooks/           # Custom React hooks
-├── services/        # API integrations
-├── utils/           # Helper functions
-├── types/           # TypeScript types
-└── constants/       # Constants and prompts
-\`\`\`
+├── api/               # Vercel Serverless Functions
+├── components/        # React UI Components
+│   ├── Auth/          # Authentication Screens
+│   ├── Chat/          # Conversation Interface
+│   ├── Dashboard/     # Progress & Stats
+│   └── MathRenderer/  # KaTeX Wrappers
+├── contexts/          # Global State (Auth, Practice)
+├── services/          # Firebase & API Services
+├── types/             # TypeScript Definitions
+└── utils/             # Helper Functions & Logic
+```
 
-## Development Timeline
+## 📄 License
 
-- ✅ **Day 0**: Environment Setup
-- ⏳ **Day 1**: Core UI Foundation
-- ⏳ **Day 2**: LLM Integration
-- ⏳ **Day 3**: Math Rendering
-- ⏳ **Day 4**: Image Upload
-- ⏳ **Day 5**: UI Polish & Testing
-- ⏳ **Day 6**: Authentication
-- ⏳ **Day 7**: Deployment
-
-## License
-
-MIT
-
-## Acknowledgments
-
-- Inspired by the OpenAI x Khan Academy demo
-- Built with modern React and TypeScript best practices
-
+This project is licensed under the MIT License.
